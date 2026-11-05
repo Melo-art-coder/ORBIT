@@ -13,12 +13,11 @@ const PORT = process.env.PORT || 3000;
 
 const SUPABASE_URL = process.env.SUPABASE_URL;
 const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY;
-const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
+const OPENAI_API_KEY = process.env.OPENAI_API_KEY || "";
 
 const requiredVariables = [
   SUPABASE_URL,
-  SUPABASE_ANON_KEY,
-  OPENAI_API_KEY
+  SUPABASE_ANON_KEY
 ];
 
 if (requiredVariables.some(value => !value)) {
