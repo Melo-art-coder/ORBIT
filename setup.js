@@ -1,42 +1,72 @@
+/* =========================================
+   ORBIT — STUDENT ONBOARDING ENGINE
+   Supabase + Profile + Courses + Themes
+========================================= */
 
 document.addEventListener("DOMContentLoaded", async () => {
   "use strict";
 
-  const form = document.querySelector("#setupForm");
-  const message = document.querySelector("#setupMessage");
-  const finishButton = document.querySelector("#finishSetupButton");
-  const courseList = document.querySelector("#courseList");
-  const courseEmpty = document.querySelector("#courseEmpty");
+  // =====================================
+  // 1. ELEMENTS
+  // =====================================
 
-  const displayNameInput = document.querySelector("#displayName");
-  const fullNameInput = document.querySelector("#fullName");
-  const institutionInput = document.querySelector("#institution");
-  const facultyInput = document.querySelector("#faculty");
-  const departmentInput = document.querySelector("#department");
-  const programmeInput = document.querySelector("#programme");
-  const studyLevelInput = document.querySelector("#studyLevel");
-  const sessionInput = document.querySelector("#academicSession");
-  const semesterInput = document.querySelector("#semester");
+  const $ = selector => document.querySelector(selector);
 
-  const courseCodeInput = document.querySelector("#courseCode");
-  const courseTitleInput = document.querySelector("#courseTitle");
-  const courseUnitsInput = document.querySelector("#courseUnits");
-  const addCourseButton = document.querySelector("#addCourseButton");
+  const form = $("#setupForm");
+  const message = $("#setupMessage");
+  const finishButton = $("#finishSetupButton");
+  const courseList = $("#courseList");
+  const courseEmpty = $("#courseEmpty");
 
-  const yearElement = document.querySelector("#currentYear");
+  const displayNameInput = $("#displayName");
+  const fullNameInput = $("#fullName");
+  const institutionInput = $("#institution");
+  const facultyInput = $("#faculty");
+  const departmentInput = $("#department");
+  const programmeInput = $("#programme");
+  const studyLevelInput = $("#studyLevel");
+  const sessionInput = $("#academicSession");
+  const semesterInput = $("#semester");
+
+  const courseCodeInput = $("#courseCode");
+  const courseTitleInput = $("#courseTitle");
+  const courseUnitsInput = $("#courseUnits");
+  const addCourseButton = $("#addCourseButton");
+
+  const yearElement = $("#currentYear");
+
   if (yearElement) {
     yearElement.textContent = new Date().getFullYear();
   }
 
+  // =====================================
+  // 2. APPLICATION STATE
+  // =====================================
+
   let courses = [];
   let currentUser = null;
-  let profileExists = false;
+
+  const supabase = window.orbitSupabase;
+
+  if (!window.orbitAuth || !supabase) {
+    showMessage("ORBIT could not connect. Please refresh the page.");
+    return;
+  }
+
+  // =====================================
+  // 3. GENERAL HELPERS
+  // =====================================
+
+  function clean(value) {
+    return String(value || "").trim();
+  }
 
   function showMessage(text, type = "error") {
     if (!message) return;
 
     message.textContent = text;
     message.className = `setup-message show ${type}`;
+
     message.scrollIntoView({
       behavior: "smooth",
       block: "nearest"
@@ -54,13 +84,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (!finishButton) return;
 
     finishButton.disabled = loading;
+
     finishButton.textContent = loading
       ? "Saving your ORBIT..."
       : "Finish setup";
-  }
-
-  function clean(value) {
-    return String(value || "").trim();
   }
 
   function escapeHTML(value) {
@@ -73,13 +100,32 @@ document.addEventListener("DOMContentLoaded", async () => {
     })[character]);
   }
 
+  // =====================================
+  // 4. THEME ENGINE
+  // =====================================
+
   function getSelectedTheme() {
-    return document.querySelector(
+    return $(
       'input[name="theme"]:checked'
     )?.value || "light";
   }
 
-  function updateThemeSelection() {
+  function applyTheme(theme) {
+    const selectedTheme = theme === "dark" ? "dark" : "light";
+
+    document.documentElement.dataset.theme = selectedTheme;
+
+    localStorage.setItem("orbitTheme", selectedTheme);
+
+    const themeColor = document.querySelector(
+      'meta[name="theme-color"]'
+    );
+
+    if (themeColor) {
+      themeColor.content =
+        selectedTheme === "dark" ? "#19171d" : "#f8f6f1";
+    }
+
     document.querySelectorAll("[data-theme-option]").forEach(option => {
       const input = option.querySelector('input[name="theme"]');
 
@@ -90,9 +136,32 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
+  function updateThemeSelection() {
+    applyTheme(getSelectedTheme());
+  }
+
+  // Apply saved theme immediately.
+  const savedLocalTheme = localStorage.getItem("orbitTheme");
+
+  if (savedLocalTheme) {
+    const savedInput = $(
+      `input[name="theme"][value="${savedLocalTheme}"]`
+    );
+
+    if (savedInput) {
+      savedInput.checked = true;
+    }
+
+    applyTheme(savedLocalTheme);
+  }
+
   document.querySelectorAll('input[name="theme"]').forEach(input => {
     input.addEventListener("change", updateThemeSelection);
   });
+
+  // =====================================
+  // 5. COURSE ENGINE
+  // =====================================
 
   function renderCourses() {
     if (!courseList || !courseEmpty) return;
@@ -103,13 +172,17 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     courses.forEach((course, index) => {
       const item = document.createElement("div");
+
       item.className = "course-item";
 
       item.innerHTML = `
         <div class="course-item-info">
           <strong>${escapeHTML(course.code)}</strong>
           <span>${escapeHTML(course.title)}</span>
-          <small>${course.units} credit unit${course.units === 1 ? "" : "s"}</small>
+          <small>
+            ${course.units}
+            credit unit${course.units === 1 ? "" : "s"}
+          </small>
         </div>
 
         <button
@@ -134,21 +207,25 @@ document.addEventListener("DOMContentLoaded", async () => {
     const units = Number(courseUnitsInput?.value);
 
     if (!code || !title || !courseUnitsInput?.value) {
-      showMessage("Please enter the course code, title and credit units.");
+      showMessage("Please complete all course details.");
       return;
     }
 
     if (!Number.isInteger(units) || units < 1 || units > 30) {
-      showMessage("Credit units must be a whole number between 1 and 30.");
+      showMessage("Credit units must be between 1 and 30.");
       return;
     }
 
-    if (courses.some(course => course.code.toUpperCase() === code)) {
-      showMessage("That course code has already been added.");
+    if (courses.some(course => course.code === code)) {
+      showMessage("This course has already been added.");
       return;
     }
 
-    courses.push({ code, title, units });
+    courses.push({
+      code,
+      title,
+      units
+    });
 
     courseCodeInput.value = "";
     courseTitleInput.value = "";
@@ -157,50 +234,39 @@ document.addEventListener("DOMContentLoaded", async () => {
     renderCourses();
   }
 
-  if (addCourseButton) {
-    addCourseButton.addEventListener("click", addCourse);
-  }
+  addCourseButton?.addEventListener("click", addCourse);
 
-  if (courseList) {
-    courseList.addEventListener("click", event => {
-      const removeButton = event.target.closest("[data-remove-course]");
+  courseList?.addEventListener("click", event => {
+    const button = event.target.closest("[data-remove-course]");
 
-      if (!removeButton) return;
+    if (!button) return;
 
-      const index = Number(removeButton.dataset.removeCourse);
+    const index = Number(button.dataset.removeCourse);
 
-      if (Number.isInteger(index) && index >= 0) {
-        courses.splice(index, 1);
-        renderCourses();
-      }
-    });
-  }
+    if (!Number.isInteger(index)) return;
 
-  // Connect to the existing ORBIT authentication client.
-  if (!window.orbitAuth || !window.orbitSupabase) {
-    showMessage("ORBIT could not connect to Supabase. Please refresh.");
-    return;
-  }
+    courses.splice(index, 1);
 
-  const supabase = window.orbitSupabase;
+    renderCourses();
+  });
+
+  // =====================================
+  // 6. LOAD AUTHENTICATED USER
+  // =====================================
 
   try {
     const session = await window.orbitAuth.getSession();
 
-    if (!session) {
+    if (!session?.user) {
       window.location.replace("login.html");
       return;
     }
 
     currentUser = session.user;
 
-    if (!currentUser) {
-      window.location.replace("login.html");
-      return;
-    }
-
-    // Prefill the student's name from signup.
-    const signupName = currentUser.user_metadata?.full_name || "";
+    // Prefill signup information.
+    const signupName =
+      currentUser.user_metadata?.full_name || "";
 
     if (fullNameInput && signupName) {
       fullNameInput.value = signupName;
@@ -210,7 +276,10 @@ document.addEventListener("DOMContentLoaded", async () => {
       displayNameInput.value = signupName.split(" ")[0];
     }
 
-    // Load an existing profile if setup is being resumed.
+    // =====================================
+    // 7. LOAD EXISTING PROFILE
+    // =====================================
+
     const { data: profile, error: profileError } = await supabase
       .from("student_profiles")
       .select("*")
@@ -220,36 +289,63 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (profileError) throw profileError;
 
     if (profile) {
-      profileExists = true;
-
       if (displayNameInput) {
-        displayNameInput.value = profile.display_name || displayNameInput.value;
+        displayNameInput.value =
+          profile.display_name || displayNameInput.value;
       }
 
       if (fullNameInput) {
-        fullNameInput.value = profile.full_name || fullNameInput.value;
+        fullNameInput.value =
+          profile.full_name || fullNameInput.value;
       }
 
-      if (institutionInput) institutionInput.value = profile.university || "";
-      if (facultyInput) facultyInput.value = profile.faculty || "";
-      if (departmentInput) departmentInput.value = profile.department || "";
-      if (programmeInput) programmeInput.value = profile.programme || "";
-      if (studyLevelInput) studyLevelInput.value = profile.study_level || "";
-      if (sessionInput) sessionInput.value = profile.academic_session || "";
-      if (semesterInput) semesterInput.value = profile.semester || "";
+      if (institutionInput) {
+        institutionInput.value = profile.university || "";
+      }
 
-      const savedTheme = profile.theme || "light";
-      const themeInput = document.querySelector(
-        `input[name="theme"][value="${savedTheme}"]`
+      if (facultyInput) {
+        facultyInput.value = profile.faculty || "";
+      }
+
+      if (departmentInput) {
+        departmentInput.value = profile.department || "";
+      }
+
+      if (programmeInput) {
+        programmeInput.value = profile.programme || "";
+      }
+
+      if (studyLevelInput) {
+        studyLevelInput.value = profile.study_level || "";
+      }
+
+      if (sessionInput) {
+        sessionInput.value = profile.academic_session || "";
+      }
+
+      if (semesterInput) {
+        semesterInput.value = profile.semester || "";
+      }
+
+      const theme = profile.theme || "light";
+
+      const themeInput = $(
+        `input[name="theme"][value="${theme}"]`
       );
 
-      if (themeInput) themeInput.checked = true;
+      if (themeInput) {
+        themeInput.checked = true;
+      }
 
-      const { data: savedCourses, error: coursesError } = await supabase
-        .from("student_courses")
-        .select("code, title, units")
-        .eq("user_id", currentUser.id)
-        .order("code");
+      applyTheme(theme);
+
+      // Load existing courses.
+      const { data: savedCourses, error: coursesError } =
+        await supabase
+          .from("student_courses")
+          .select("code, title, units")
+          .eq("user_id", currentUser.id)
+          .order("code");
 
       if (coursesError) throw coursesError;
 
@@ -258,111 +354,158 @@ document.addEventListener("DOMContentLoaded", async () => {
         title: course.title,
         units: course.units
       }));
-
-      renderCourses();
-      updateThemeSelection();
     }
 
+    renderCourses();
+    updateThemeSelection();
+
   } catch (error) {
-    console.error("ORBIT setup loading error:", error);
-    showMessage("We couldn't load your student details. Please refresh and try again.");
+    console.error("ORBIT profile loading error:", error);
+
+    showMessage(
+      "We couldn't load your details. Please refresh and try again."
+    );
+
     return;
   }
 
-  // Save the completed student profile.
-  if (form) {
-    form.addEventListener("submit", async event => {
-      event.preventDefault();
-      hideMessage();
+  // =====================================
+  // 8. SAVE PROFILE
+  // =====================================
 
-      if (!currentUser) {
-        showMessage("Your session has expired. Please log in again.");
-        return;
-      }
+  form?.addEventListener("submit", async event => {
+    event.preventDefault();
 
-      const profileData = {
+    hideMessage();
+
+    if (!currentUser) {
+      showMessage("Your session has expired. Please log in again.");
+      return;
+    }
+
+    const profileData = {
+      user_id: currentUser.id,
+
+      display_name: clean(displayNameInput?.value),
+      full_name: clean(fullNameInput?.value),
+
+      university: clean(institutionInput?.value),
+      faculty: clean(facultyInput?.value),
+      department: clean(departmentInput?.value),
+
+      programme: clean(programmeInput?.value),
+      study_level: clean(studyLevelInput?.value),
+
+      academic_session: clean(sessionInput?.value),
+      semester: clean(semesterInput?.value),
+
+      theme: getSelectedTheme(),
+      setup_completed: true
+    };
+
+    // Validate required fields.
+    const requiredFields = [
+      ["display name", profileData.display_name],
+      ["full name", profileData.full_name],
+      ["institution", profileData.university],
+      ["faculty", profileData.faculty],
+      ["department", profileData.department],
+      ["programme", profileData.programme],
+      ["study level", profileData.study_level],
+      ["academic session", profileData.academic_session],
+      ["semester", profileData.semester]
+    ];
+
+    const missing = requiredFields.find(([, value]) => !value);
+
+    if (missing) {
+      showMessage(`Please complete your ${missing[0]}.`);
+      return;
+    }
+
+    if (courses.length === 0) {
+      showMessage("Please add at least one course.");
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      // Save profile.
+      const { error: profileSaveError } = await supabase
+        .from("student_profiles")
+        .upsert(profileData, {
+          onConflict: "user_id"
+        });
+
+      if (profileSaveError) throw profileSaveError;
+
+      // Save courses.
+      const courseRows = courses.map(course => ({
         user_id: currentUser.id,
-        display_name: clean(displayNameInput?.value),
-        full_name: clean(fullNameInput?.value),
-        university: clean(institutionInput?.value),
-        faculty: clean(facultyInput?.value),
-        department: clean(departmentInput?.value),
-        programme: clean(programmeInput?.value),
-        study_level: clean(studyLevelInput?.value),
-        academic_session: clean(sessionInput?.value),
-        semester: clean(semesterInput?.value),
-        theme: getSelectedTheme(),
-        setup_completed: true
-      };
+        code: course.code,
+        title: course.title,
+        units: course.units
+      }));
 
-      const requiredFields = [
-        ["display name", profileData.display_name],
-        ["full name", profileData.full_name],
-        ["institution", profileData.university],
-        ["faculty", profileData.faculty],
-        ["department", profileData.department],
-        ["programme", profileData.programme],
-        ["study level", profileData.study_level],
-        ["academic session", profileData.academic_session],
-        ["semester", profileData.semester]
-      ];
+      const { error: courseSaveError } = await supabase
+        .from("student_courses")
+        .upsert(courseRows, {
+          onConflict: "user_id,code"
+        });
 
-      const missingField = requiredFields.find(([, value]) => !value);
+      if (courseSaveError) throw courseSaveError;
 
-      if (missingField) {
-        showMessage(`Please complete your ${missingField[0]}.`);
-        return;
-      }
-
-      if (courses.length === 0) {
-        showMessage("Please add at least one course before continuing.");
-        return;
-      }
-
-      setLoading(true);
-
-      try {
-        const { error: saveProfileError } = await supabase
-          .from("student_profiles")
-          .upsert(profileData, { onConflict: "user_id" });
-
-        if (saveProfileError) throw saveProfileError;
-
-        const courseRows = courses.map(course => ({
-          user_id: currentUser.id,
-          code: course.code,
-          title: course.title,
-          units: course.units
-        }));
-
-        const { error: saveCoursesError } = await supabase
+      // Remove courses deleted during editing.
+      const { data: existingCourses, error: existingError } =
+        await supabase
           .from("student_courses")
-          .upsert(courseRows, { onConflict: "user_id,code" });
+          .select("code")
+          .eq("user_id", currentUser.id);
 
-        if (saveCoursesError) throw saveCoursesError;
+      if (existingError) throw existingError;
 
-        // Keep the selected theme available to the dashboard.
-        localStorage.setItem("orbitTheme", profileData.theme);
-        document.documentElement.dataset.theme = profileData.theme;
+      const selectedCodes = new Set(
+        courses.map(course => course.code)
+      );
 
-        showMessage("Your ORBIT profile is ready. Welcome aboard!", "success");
+      const obsoleteCodes = (existingCourses || [])
+        .map(course => course.code)
+        .filter(code => !selectedCodes.has(code));
 
-        setTimeout(() => {
-          window.location.href = "app.html";
-        }, 900);
+      if (obsoleteCodes.length > 0) {
+        const { error: deleteError } = await supabase
+          .from("student_courses")
+          .delete()
+          .eq("user_id", currentUser.id)
+          .in("code", obsoleteCodes);
 
-      } catch (error) {
-        console.error("ORBIT setup save error:", error);
-
-        showMessage(
-          error.message || "We couldn't save your details. Please try again."
-        );
-
-      } finally {
-        setLoading(false);
+        if (deleteError) throw deleteError;
       }
-    });
-  }
+
+      // Persist theme.
+      applyTheme(profileData.theme);
+
+      showMessage(
+        "Your ORBIT profile is ready. Welcome aboard!",
+        "success"
+      );
+
+      setTimeout(() => {
+        window.location.href = "app.html";
+      }, 1000);
+
+    } catch (error) {
+      console.error("ORBIT profile saving error:", error);
+
+      showMessage(
+        error.message || "We couldn't save your details. Please try again."
+      );
+
+    } finally {
+      setLoading(false);
+    }
+  });
 
   renderCourses();
   updateThemeSelection();
