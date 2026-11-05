@@ -1,4 +1,3 @@
-
 document.addEventListener("DOMContentLoaded", async () => {
   "use strict";
 
@@ -13,56 +12,31 @@ document.addEventListener("DOMContentLoaded", async () => {
   const themeButton = $("#themeToggle");
   const signOutButton = $("#signOutButton");
 
-  const profileName = $("#profileName");
-  const institutionName = $("#institutionName");
   const profileInitials = $("#profileInitials");
   const topbarAvatar = $("#topbarAvatar");
   const profileLargeAvatar = $("#profileLargeAvatar");
 
-  const studentGreeting = $("#studentGreeting");
-  const dashboardInstitution = $("#dashboardInstitution");
-  const dashboardProgramme = $("#dashboardProgramme");
-  const dashboardLevel = $("#dashboardLevel");
-  const dashboardSession = $("#dashboardSession");
-  const currentSemester = $("#currentSemester");
-
-  const profileFullName = $("#profileFullName");
-  const profileProgramme = $("#profileProgramme");
-  const profileDepartment = $("#profileDepartment");
-
-  const courseCount = $("#courseCount");
-  const creditCount = $("#creditCount");
-  const coursePanelCount = $("#coursePanelCount");
   const courseList = $("#dashboardCourseList");
-
   const todayDate = $("#todayDate");
   const currentYear = $("#currentYear");
 
-
   // =========================================
-  // BASIC HELPERS
+  // HELPERS
   // =========================================
 
   function setText(selector, value, fallback = "Not provided") {
     const element = $(selector);
-
-    if (element) {
-      element.textContent = value || fallback;
-    }
+    if (element) element.textContent = value || fallback;
   }
 
   function getInitials(name) {
-    const words = String(name || "ORBIT")
+    return String(name || "ORBIT")
       .trim()
       .split(/\s+/)
-      .filter(Boolean);
-
-    if (!words.length) return "O";
-
-    return words
+      .filter(Boolean)
       .slice(0, 2)
       .map(word => word.charAt(0).toUpperCase())
-      .join("");
+      .join("") || "O";
   }
 
   function showToast(message, type = "info") {
@@ -74,7 +48,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       toast.className = "orbit-toast";
       toast.setAttribute("role", "status");
       toast.setAttribute("aria-live", "polite");
-
       document.body.appendChild(toast);
     }
 
@@ -89,7 +62,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     }, 3000);
   }
 
-
   // =========================================
   // DATE
   // =========================================
@@ -98,15 +70,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     const now = new Date();
 
     if (todayDate) {
-      todayDate.textContent = new Intl.DateTimeFormat(
-        "en-NG",
-        {
-          weekday: "short",
-          day: "numeric",
-          month: "short",
-          year: "numeric"
-        }
-      ).format(now);
+      todayDate.textContent = new Intl.DateTimeFormat("en-NG", {
+        weekday: "short",
+        day: "numeric",
+        month: "short",
+        year: "numeric"
+      }).format(now);
     }
 
     if (currentYear) {
@@ -116,13 +85,12 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   displayDate();
 
-
   // =========================================
-  // AUTHENTICATION CHECK
+  // AUTHENTICATION
   // =========================================
 
   if (!window.orbitAuth || !window.orbitSupabase) {
-    showToast("ORBIT could not connect. Please refresh.", "error");
+    showToast("ORBIT couldn't connect. Please refresh.", "error");
     return;
   }
 
@@ -130,7 +98,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   let currentUser = null;
   let currentProfile = null;
-
 
   // =========================================
   // THEME SYSTEM
@@ -153,21 +120,41 @@ document.addEventListener("DOMContentLoaded", async () => {
           ? "Switch to light theme"
           : "Switch to dark theme"
       );
+
+      themeButton.title =
+        selectedTheme === "dark"
+          ? "Switch to light theme"
+          : "Switch to dark theme";
     }
 
-    const themeColor = document.querySelector(
-      'meta[name="theme-color"]'
-    );
+    const themeColor = $('meta[name="theme-color"]');
 
     if (themeColor) {
       themeColor.content =
         selectedTheme === "dark" ? "#19171e" : "#f8f6f1";
     }
+
+    return selectedTheme;
   }
 
-  let savedTheme = localStorage.getItem("orbitTheme") || "light";
+  // Apply saved device preference immediately.
+  applyTheme(localStorage.getItem("orbitTheme") || "light");
 
-  applyTheme(savedTheme);
+  async function saveTheme(theme) {
+    if (!currentUser) return;
+
+    const { error } = await supabase
+      .from("student_profiles")
+      .update({ theme })
+      .eq("user_id", currentUser.id);
+
+    if (error) {
+      console.error("Theme sync error:", error);
+      showToast("Theme saved on this device, but couldn't sync.", "error");
+    } else if (currentProfile) {
+      currentProfile.theme = theme;
+    }
+  }
 
   if (themeButton) {
     themeButton.addEventListener("click", async () => {
@@ -177,21 +164,9 @@ document.addEventListener("DOMContentLoaded", async () => {
           : "dark";
 
       applyTheme(nextTheme);
-
-      if (!currentUser) return;
-
-      const { error } = await supabase
-        .from("student_profiles")
-        .update({ theme: nextTheme })
-        .eq("user_id", currentUser.id);
-
-      if (error) {
-        console.error("Theme save error:", error);
-        showToast("Theme changed on this device, but couldn't sync.", "error");
-      }
+      await saveTheme(nextTheme);
     });
   }
-
 
   // =========================================
   // MOBILE SIDEBAR
@@ -203,7 +178,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     overlay = document.createElement("div");
     overlay.id = "sidebarOverlay";
     overlay.className = "sidebar-overlay";
-
+    overlay.setAttribute("aria-hidden", "true");
     document.body.appendChild(overlay);
   }
 
@@ -242,59 +217,77 @@ document.addEventListener("DOMContentLoaded", async () => {
   overlay.addEventListener("click", closeSidebar);
 
   document.addEventListener("keydown", event => {
-    if (event.key === "Escape") {
-      closeSidebar();
-    }
+    if (event.key === "Escape") closeSidebar();
   });
 
   window.addEventListener("resize", () => {
-    if (window.innerWidth > 680) {
-      closeSidebar();
+    if (window.innerWidth > 680) closeSidebar();
+  });
+
+  // =========================================
+  // PAGE NAVIGATION
+  // =========================================
+
+  const pageRoutes = {
+    "#academics": "academics.html",
+    "#schedule": "timetable.html",
+    "#profile": "profile.html",
+    "#community": "community.html"
+  };
+
+  // Update destinations BEFORE attaching click listeners.
+  document.querySelectorAll(".nav-link").forEach(link => {
+    const destination = link.getAttribute("href");
+
+    if (pageRoutes[destination]) {
+      link.setAttribute("href", pageRoutes[destination]);
+      link.removeAttribute("data-coming-soon");
     }
   });
 
-
-  // =========================================
-  // NAVIGATION
-  // =========================================
-
+  // Sidebar navigation.
   document.querySelectorAll(".nav-link").forEach(link => {
-    link.addEventListener("click", () => {
-      const target = document.querySelector(
-        link.getAttribute("href")
-      );
-
-      document.querySelectorAll(".nav-link").forEach(item => {
-        item.classList.remove("active");
-      });
-
-      link.classList.add("active");
+    link.addEventListener("click", event => {
+      const href = link.getAttribute("href");
 
       closeSidebar();
 
-      if (target) {
-        target.scrollIntoView({
-          behavior: "smooth",
-          block: "start"
-        });
+      // Only handle dashboard section links here.
+      if (href && href.startsWith("#")) {
+        const target = document.querySelector(href);
+
+        if (target) {
+          event.preventDefault();
+
+          document.querySelectorAll(".nav-link").forEach(item => {
+            item.classList.remove("active");
+          });
+
+          link.classList.add("active");
+
+          target.scrollIntoView({
+            behavior: "smooth",
+            block: "start"
+          });
+        }
       }
 
-      if (
-        link.querySelector(".coming-soon") ||
-        ["community", "marketplace", "opportunities"].includes(
-          link.getAttribute("href")?.replace("#", "")
-        )
-      ) {
-        showToast("This ORBIT module is still being developed.");
+      // Inform users about unfinished modules.
+      if (link.hasAttribute("data-coming-soon")) {
+        event.preventDefault();
+        showToast("This ORBIT feature is coming soon.");
       }
     });
   });
 
+  // Quick dashboard shortcuts.
   document.querySelectorAll(".quick-card").forEach(link => {
     link.addEventListener("click", event => {
-      const target = document.querySelector(
-        link.getAttribute("href")
-      );
+      const href = link.getAttribute("href");
+
+      if (!href || !href.startsWith("#")) return;
+
+      const target = document.querySelector(href);
 
       if (target) {
         event.preventDefault();
@@ -307,15 +300,19 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   });
 
-
   // =========================================
   // LOAD STUDENT PROFILE
   // =========================================
 
   async function loadStudent() {
-    const session = await window.orbitAuth.getSession();
+    const result = await window.orbitAuth.getSession();
 
-    if (!session || !session.user) {
+    const session =
+      result?.data?.session ||
+      result?.session ||
+      result;
+
+    if (!session?.user) {
       window.location.replace("login.html");
       return false;
     }
@@ -352,14 +349,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     return true;
   }
 
-
   // =========================================
   // DISPLAY STUDENT INFORMATION
   // =========================================
 
   function displayStudent(profile) {
-    const fullName =
-      profile.full_name || "ORBIT Student";
+    const fullName = profile.full_name || "ORBIT Student";
 
     const displayName =
       profile.display_name || fullName.split(" ")[0];
@@ -382,25 +377,15 @@ document.addEventListener("DOMContentLoaded", async () => {
     setText("#profileProgramme", profile.programme);
     setText("#profileDepartment", profile.department);
 
-    if (profileInitials) {
-      profileInitials.textContent = initials;
-    }
+    if (profileInitials) profileInitials.textContent = initials;
+    if (topbarAvatar) topbarAvatar.textContent = initials;
+    if (profileLargeAvatar) profileLargeAvatar.textContent = initials;
 
-    if (topbarAvatar) {
-      topbarAvatar.textContent = initials;
-    }
-
-    if (profileLargeAvatar) {
-      profileLargeAvatar.textContent = initials;
-    }
-
-    // Use the database preference as the source of truth.
+    // Database preference takes priority.
     if (profile.theme) {
-      savedTheme = profile.theme;
-      applyTheme(savedTheme);
+      applyTheme(profile.theme);
     }
   }
-
 
   // =========================================
   // LOAD STUDENT COURSES
@@ -433,9 +418,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     renderCourses(studentCourses);
   }
 
-
   // =========================================
-  // RENDER COURSES SAFELY
+  // RENDER COURSES
   // =========================================
 
   function renderCourses(courses) {
@@ -468,9 +452,9 @@ document.addEventListener("DOMContentLoaded", async () => {
       const row = document.createElement("article");
       row.className = "course-row";
 
-      const codeBadge = document.createElement("div");
-      codeBadge.className = "course-code-badge";
-      codeBadge.textContent = course.code || "N/A";
+      const badge = document.createElement("div");
+      badge.className = "course-code-badge";
+      badge.textContent = course.code || "N/A";
 
       const info = document.createElement("div");
       info.className = "course-row-info";
@@ -485,14 +469,16 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       const units = document.createElement("span");
       units.className = "course-unit-badge";
-      units.textContent = `${course.units} unit${Number(course.units) === 1 ? "" : "s"}`;
 
-      row.append(codeBadge, info, units);
+      const unitCount = Number(course.units || 0);
 
+      units.textContent =
+        `${unitCount} unit${unitCount === 1 ? "" : "s"}`;
+
+      row.append(badge, info, units);
       courseList.appendChild(row);
     });
   }
-
 
   // =========================================
   // SIGN OUT
@@ -510,7 +496,12 @@ document.addEventListener("DOMContentLoaded", async () => {
       signOutButton.textContent = "Signing out...";
 
       try {
-        await window.orbitAuth.signOut();
+        const result = await window.orbitAuth.signOut();
+
+        if (result?.error) throw result.error;
+
+        window.location.replace("login.html");
+
       } catch (error) {
         console.error("ORBIT sign-out error:", error);
 
@@ -521,48 +512,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
     });
   }
-  //===============
-  //ACADEMICS PAGE NAVIGATION
-  //================
-  document.querySelectorAll(
-    'a[href="#academics"]'
-  ).forEach((link)=>{
-    link.setAttribute("href", "academics.html");
-    link.removeAttribute("data-coming-soon");
-  });
 
-  //===============
-  //TIMETABLE PAGE NAVIGATION
-  //===============
-  document.querySelectorAll(
-    'a[href="#schedule"]'
-  ).forEach((link)=> {
-    link.setAttribute("href","timetable.html");
-    link.removeAttribute("data-coming-soon");
-  });
-
-  //===============
-  //PROFILE PAGE NAVIGATION
-  //===============
-  document.querySelectorAll(
-    'a[href="#profile"]'
-  ).forEach((link)=> {
-    link.setAttribute("href", "profile.html");
-    link.removeAttribute("data-coming-soon");
-  });
-
-  //=========================
-  //COMMUNITY PAGE NAVIGATION
-  //=========================
-
-  document.querySelectorAll(
-    'a[href="#community"]'
-  ).forEach((link)=>{
-    link.setAttribute("href", "community.html");
-    link.removeAttribute("data-coming-soon");
-  }
-  );
-  
   // =========================================
   // INITIALISE DASHBOARD
   // =========================================
