@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <meta name="theme-color" content="#f8f7f3">
+  <meta name="description" content="Discover internships, scholarships, hackathons and opportunities with ORBIT.">
+
+  <title>Opportunities | ORBIT</title>
+
+  <link rel="stylesheet" href="opportunities.css">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+
+  <div class="orbit-layout">
+
+    <!-- SIDEBAR -->
+
+    <aside class="sidebar" id="sidebar">
+
+      <a href="app.html" class="brand">
+        <span class="brand-icon">O</span>
+        <span>ORBIT</span>
+      </a>
+
+      <div class="sidebar-label">WORKSPACE</div>
+
+      <nav class="sidebar-nav">
+
+        <a href="app.html" class="nav-link">
+          <span>⌂</span> Dashboard
+        </a>
+
+        <a href="courses.html" class="nav-link">
+          <span>▤</span> My Courses
+        </a>
+
+        <a href="marketplace.html" class="nav-link">
+          <span>◇</span> Marketplace
+        </a>
+
+        <a href="opportunities.html" class="nav-link active">
+          <span>✳</span> Opportunities
+        </a>
+
+        <a href="study-companion.html" class="nav-link">
+          <span>✧</span> AI Study Companion
+        </a>
+
+      </nav>
+
+      <div class="sidebar-bottom">
+        <div class="sidebar-label">ACCOUNT</div>
+
+        <a href="profile.html" class="nav-link">
+          <span>◉</span> My Profile
+        </a>
+
+        <a href="settings.html" class="nav-link">
+          <span>⚙</span> Settings
+        </a>
+
+        <div class="sidebar-footer">
+          <span class="footer-dot"></span>
+          Your campus. Your universe.
+        </div>
+      </div>
+
+    </aside>
+
+
+    <!-- MAIN CONTENT -->
+
+    <main class="main-content">
+
+      <header class="topbar">
+
+        <button class="menu-button" id="menuButton" aria-label="Open navigation">
+          ☰
+        </button>
+
+        <div class="breadcrumb">
+          Workspace <span>/</span> Opportunities
+        </div>
+
+        <div class="topbar-actions">
+          <button class="icon-button" id="themeButton" aria-label="Toggle theme">
+            ◐
+          </button>
+
+          <a href="profile.html" class="profile-avatar" id="userAvatar">
+            O
+          </a>
+        </div>
+
+      </header>
+
+
+      <!-- HERO -->
+
+      <section class="opportunity-hero">
+
+        <div class="hero-copy">
+
+          <span class="eyebrow">BEYOND THE CLASSROOM</span>
+
+          <h1>
+            Your next big<br>
+            <span>opportunity awaits.</span>
+          </h1>
+
+          <p>
+            Discover opportunities that help you grow, gain experience,
+            build connections and move closer to your ambitions.
+          </p>
+
+          <button class="hero-button" id="exploreButton">
+            Explore opportunities <span>↗</span>
+          </button>
+
+        </div>
+
+        <div class="hero-art">
+          <div class="orbit-circle circle-one"></div>
+          <div class="orbit-circle circle-two"></div>
+          <div class="orbit-circle circle-three"></div>
+
+          <div class="hero-symbol">✳</div>
+
+          <div class="floating-card card-top">
+            <span>✦</span> Discover more
+          </div>
+
+          <div class="floating-card card-bottom">
+            Your future is in motion.
+          </div>
+        </div>
+
+      </section>
+
+
+      <!-- STATS -->
+
+      <section class="stats-grid">
+
+        <article class="stat-card">
+          <span class="stat-icon">✧</span>
+          <div>
+            <h3 id="totalCount">—</h3>
+            <p>Opportunities</p>
+          </div>
+        </article>
+
+        <article class="stat-card">
+          <span class="stat-icon">♡</span>
+          <div>
+            <h3 id="savedCount">0</h3>
+            <p>Saved opportunities</p>
+          </div>
+        </article>
+
+        <article class="stat-card">
+          <span class="stat-icon">◷</span>
+          <div>
+            <h3 id="deadlineCount">—</h3>
+            <p>Closing soon</p>
+          </div>
+        </article>
+
+      </section>
+
+
+      <!-- DISCOVERY -->
+
+      <section class="discovery-section" id="discovery">
+
+        <div class="section-heading">
+
+          <div>
+            <span class="eyebrow">THE OPPORTUNITY BOARD</span>
+            <h2>Find your next move.</h2>
+            <p>Explore opportunities across different fields and industries.</p>
+          </div>
+
+          <button class="saved-toggle" id="savedToggle">
+            ♡ Saved <span id="savedBadge">0</span>
+          </button>
+
+        </div>
+
+
+        <!-- SEARCH -->
+
+        <div class="search-area">
+
+          <div class="search-box">
+            <span>⌕</span>
+
+            <input
+              type="search"
+              id="opportunitySearch"
+              placeholder="Search internships, scholarships, skills..."
+              autocomplete="off"
+            >
+
+            <button id="clearSearch" aria-label="Clear search">×</button>
+          </div>
+
+          <select id="typeFilter" aria-label="Filter opportunity type">
+            <option value="">All opportunities</option>
+            <option value="Internship">Internships</option>
+            <option value="Scholarship">Scholarships</option>
+            <option value="Competition">Competitions</option>
+            <option value="Hackathon">Hackathons</option>
+            <option value="Fellowship">Fellowships</option>
+            <option value="Volunteering">Volunteering</option>
+            <option value="Graduate">Graduate programmes</option>
+          </select>
+
+          <select id="sortFilter" aria-label="Sort opportunities">
+            <option value="newest">Recently added</option>
+            <option value="deadline">Closing soon</option>
+            <option value="alphabetical">A–Z</option>
+          </select>
+
+        </div>
+
+
+        <!-- CATEGORY FILTERS -->
+
+        <div class="category-list" id="categoryList">
+
+          <button class="category-chip active" data-category="All">
+            All opportunities
+          </button>
+
+          <button class="category-chip" data-category="Internship">
+            Internships
+          </button>
+
+          <button class="category-chip" data-category="Scholarship">
+            Scholarships
+          </button>
+
+          <button class="category-chip" data-category="Competition">
+            Competitions
+          </button>
+
+          <button class="category-chip" data-category="Hackathon">
+            Hackathons
+          </button>
+
+          <button class="category-chip" data-category="Fellowship">
+            Fellowships
+          </button>
+
+          <button class="category-chip" data-category="Volunteering">
+            Volunteering
+          </button>
+
+        </div>
+
+
+        <!-- RESULTS -->
+
+        <div class="results-heading">
+
+          <div>
+            <h3 id="resultsTitle">Discover opportunities</h3>
+            <p id="resultsDescription">Explore what's available.</p>
+          </div>
+
+          <span id="resultsCount"></span>
+
+        </div>
+
+
+        <div class="opportunity-grid" id="opportunityGrid">
+
+          <div class="loading-state">
+            <span class="loader"></span>
+            <p>Preparing your opportunities...</p>
+          </div>
+
+        </div>
+
+
+        <!-- EMPTY STATE -->
+
+        <div class="empty-state" id="emptyState" hidden>
+
+          <div class="empty-icon">✳</div>
+
+          <h3>Nothing here just yet.</h3>
+
+          <p>
+            Try another search or explore a different category.
+          </p>
+
+          <button id="resetFilters">Clear filters</button>
+
+        </div>
+
+      </section>
+
+
+      <!-- DETAIL MODAL -->
+
+      <div class="modal-overlay" id="detailModal" hidden>
+
+        <div class="detail-modal">
+
+          <button class="modal-close" id="closeModal" aria-label="Close">
+            ×
+          </button>
+
+          <div id="modalContent"></div>
+
+        </div>
+
+      </div>
+
+
+      <!-- FOOTER -->
+
+      <footer class="page-footer">
+
+        <div class="footer-brand">ORBIT.</div>
+
+        <p>
+          Discover possibilities. Build your future.
+        </p>
+
+        <span>© 2026 ORBIT. All rights reserved.</span>
+
+      </footer>
+
+    </main>
+
+  </div>
+
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="auth.js" defer></script>
+<script src="opportunities.js" defer></script>
+
+</body>
+</html>

@@ -1,0 +1,697 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#f6f2ea">
+  <meta name="description" content="Discover, buy and sell with students across ORBIT.">
+  <title>Marketplace — ORBIT</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="marketplace.css">
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="auth.js" defer></script>
+  <script src="marketplace.js" defer></script>
+</head>
+
+<body>
+
+  <div class="marketplace-page">
+
+    <!-- HEADER -->
+    <header class="market-header">
+      <a href="app.html" class="brand" aria-label="ORBIT dashboard">
+        ORBIT<span>✳</span>
+      </a>
+
+      <nav class="market-header-actions">
+        <a href="app.html" class="back-dashboard">
+          <span>←</span> Dashboard
+        </a>
+
+        <button
+          class="header-icon-button"
+          id="openMessagesButton"
+          type="button"
+          aria-label="Open messages"
+          title="Messages"
+        >
+          ♧
+          <span class="notification-dot" id="messageNotificationDot" hidden></span>
+        </button>
+
+        <button
+          class="header-avatar"
+          id="marketUserAvatar"
+          type="button"
+          aria-label="Open my shop"
+        >
+          O
+        </button>
+      </nav>
+    </header>
+
+
+    <!-- HERO -->
+    <section class="market-hero">
+      <div class="market-hero-copy">
+        <span class="eyebrow">THE ORBIT MARKETPLACE</span>
+
+        <h1>
+          Your campus.
+          <br>
+          Your marketplace.
+        </h1>
+
+        <p>
+          Discover new finds, support student businesses
+          and connect with sellers across every institution.
+        </p>
+
+        <div class="market-hero-actions">
+          <button
+            class="primary-button"
+            id="openListingButton"
+            type="button"
+          >
+            <span>＋</span> Start selling
+          </button>
+
+          <button
+            class="secondary-button"
+            id="exploreProductsButton"
+            type="button"
+          >
+            Explore products
+          </button>
+        </div>
+      </div>
+
+      <div class="market-hero-art" aria-hidden="true">
+        <div class="market-orbit orbit-one"></div>
+        <div class="market-orbit orbit-two"></div>
+
+        <div class="market-art-card market-art-card-one">
+          <span>✳</span>
+          <small>Discover</small>
+        </div>
+
+        <div class="market-art-card market-art-card-two">
+          <span>♡</span>
+          <small>Connect</small>
+        </div>
+
+        <div class="market-art-core">
+          <span>O</span>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- SEARCH -->
+    <section class="market-search-section" id="marketExplore">
+      <div class="market-search-box">
+        <span class="search-icon" aria-hidden="true">⌕</span>
+
+        <input
+          type="search"
+          id="searchProducts"
+          placeholder="Search products, sellers or institutions..."
+          autocomplete="off"
+          maxlength="100"
+        >
+
+        <button
+          type="button"
+          id="clearSearchButton"
+          aria-label="Clear search"
+          hidden
+        >
+          ×
+        </button>
+      </div>
+
+      <button
+        class="filter-toggle-button"
+        id="filterToggleButton"
+        type="button"
+      >
+        Filters <span>⌄</span>
+      </button>
+    </section>
+
+
+    <!-- FILTERS -->
+    <section class="market-filter-panel" id="marketFilterPanel">
+      <div class="category-filters" id="categoryFilters">
+        <button class="category-chip active" data-category="All" type="button">
+          All
+        </button>
+
+        <button class="category-chip" data-category="Food" type="button">
+          Food
+        </button>
+
+        <button class="category-chip" data-category="Fashion" type="button">
+          Fashion
+        </button>
+
+        <button class="category-chip" data-category="Electronics" type="button">
+          Electronics
+        </button>
+
+        <button class="category-chip" data-category="Books" type="button">
+          Books
+        </button>
+
+        <button class="category-chip" data-category="Beauty" type="button">
+          Beauty
+        </button>
+
+        <button class="category-chip" data-category="Services" type="button">
+          Services
+        </button>
+
+        <button class="category-chip" data-category="Other" type="button">
+          Other
+        </button>
+      </div>
+
+      <div class="market-filter-options">
+        <label for="institutionFilter">Institution</label>
+
+        <select id="institutionFilter">
+          <option value="All">All institutions</option>
+        </select>
+
+        <label for="sortProducts">Sort</label>
+
+        <select id="sortProducts">
+          <option value="newest">Newest first</option>
+          <option value="oldest">Oldest first</option>
+          <option value="price-low">Price: low to high</option>
+          <option value="price-high">Price: high to low</option>
+        </select>
+      </div>
+    </section>
+
+
+    <!-- FEED TABS -->
+    <section class="market-feed-section">
+
+      <div class="market-section-heading">
+        <div>
+          <span class="eyebrow">THE DISCOVERY FEED</span>
+          <h2 id="feedHeading">Discover something new.</h2>
+          <p id="feedSubheading">
+            Good finds from students everywhere.
+          </p>
+        </div>
+
+        <button
+          class="text-button"
+          id="refreshProductsButton"
+          type="button"
+        >
+          ↻ Refresh
+        </button>
+      </div>
+
+
+      <div class="market-feed-tabs" role="tablist" aria-label="Marketplace feed">
+        <button
+          class="market-tab active"
+          type="button"
+          role="tab"
+          aria-selected="true"
+          data-market-filter="all"
+        >
+          For you
+        </button>
+
+        <button
+          class="market-tab"
+          type="button"
+          role="tab"
+          aria-selected="false"
+          data-market-filter="trending"
+        >
+          Trending
+        </button>
+
+        <button
+          class="market-tab"
+          type="button"
+          role="tab"
+          aria-selected="false"
+          data-market-filter="mine"
+        >
+          My listings
+        </button>
+      </div>
+
+
+      <!-- FEED STATUS -->
+      <div
+        class="product-status"
+        id="productStatus"
+        role="status"
+        aria-live="polite"
+      >
+        Loading marketplace...
+      </div>
+
+
+      <!-- PRODUCT GRID -->
+      <div class="product-grid" id="productGrid"></div>
+
+
+      <!-- EMPTY STATE -->
+      <div class="market-empty" id="marketEmpty" hidden>
+        <div class="empty-icon">✳</div>
+
+        <h3 id="emptyHeading">Nothing here just yet.</h3>
+
+        <p id="emptyDescription">
+          New discoveries will show up here.
+        </p>
+
+        <button
+          class="primary-button"
+          id="emptySellButton"
+          type="button"
+        >
+          Create a listing
+        </button>
+      </div>
+
+    </section>
+
+
+    <!-- SELLER DASHBOARD -->
+    <section class="seller-dashboard-section" id="sellerDashboard">
+      <div class="market-section-heading">
+        <div>
+          <span class="eyebrow">YOUR LITTLE BUSINESS SPACE</span>
+          <h2>Your shop.</h2>
+          <p>Keep track of your products and activity.</p>
+        </div>
+      </div>
+
+      <div class="seller-stat-grid">
+        <div class="seller-stat-card">
+          <span>Products</span>
+          <strong id="sellerProductCount">0</strong>
+        </div>
+
+        <div class="seller-stat-card">
+          <span>Total likes</span>
+          <strong id="sellerLikeCount">0</strong>
+        </div>
+
+        <div class="seller-stat-card">
+          <span>Comments</span>
+          <strong id="sellerCommentCount">0</strong>
+        </div>
+      </div>
+
+      <button
+        class="secondary-button"
+        id="sellerCreateListingButton"
+        type="button"
+      >
+        ＋ Add another product
+      </button>
+    </section>
+
+
+    <!-- LISTING FORM -->
+    <section class="listing-section" id="listingSection" hidden>
+
+      <div class="listing-heading">
+        <div>
+          <span class="eyebrow">YOUR NEXT LISTING</span>
+          <h2>Put it out there.</h2>
+          <p>
+            Add the details and let ORBIT introduce your product
+            to students everywhere.
+          </p>
+        </div>
+
+        <button
+          class="close-listing-button"
+          id="closeListingButton"
+          type="button"
+          aria-label="Close listing form"
+        >
+          ×
+        </button>
+      </div>
+
+
+      <form id="listingForm" novalidate>
+
+        <div class="listing-form-grid">
+
+          <div class="field full-width">
+            <label for="productTitle">Product name</label>
+
+            <input
+              type="text"
+              id="productTitle"
+              maxlength="90"
+              placeholder="What are you selling?"
+              required
+            >
+          </div>
+
+
+          <div class="field">
+            <label for="productCategory">Category</label>
+
+            <select id="productCategory" required>
+              <option value="">Choose category</option>
+              <option value="Food">Food</option>
+              <option value="Fashion">Fashion</option>
+              <option value="Electronics">Electronics</option>
+              <option value="Books">Books</option>
+              <option value="Beauty">Beauty</option>
+              <option value="Services">Services</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+
+
+          <div class="field">
+            <label for="productPrice">Price (₦)</label>
+
+            <input
+              type="number"
+              id="productPrice"
+              min="0"
+              max="100000000"
+              step="0.01"
+              placeholder="e.g. 5000"
+              required
+            >
+          </div>
+
+
+          <div class="field full-width">
+            <label for="productDescription">Description</label>
+
+            <textarea
+              id="productDescription"
+              maxlength="1000"
+              rows="4"
+              placeholder="Describe your product, its condition and anything buyers should know..."
+              required
+            ></textarea>
+
+            <small>Maximum 1,000 characters.</small>
+          </div>
+
+
+          <div class="field full-width">
+            <label for="productLocation">Location</label>
+
+            <input
+              type="text"
+              id="productLocation"
+              maxlength="120"
+              placeholder="Institution, campus or general area"
+              required
+            >
+
+            <small>
+              Share a general location. Don't publish your home address.
+            </small>
+          </div>
+
+
+          <!-- PRODUCT IMAGE -->
+          <div class="field full-width">
+            <label for="productImage">Product photo</label>
+
+            <div class="image-upload-area">
+              <input
+                type="file"
+                id="productImage"
+                accept="image/jpeg,image/png,image/webp"
+              >
+
+              <div class="image-upload-hint">
+                <span>＋</span>
+                <strong>Add a product photo</strong>
+                <small>JPG, PNG or WebP · Maximum 3 MB</small>
+              </div>
+            </div>
+
+            <div class="image-preview" id="imagePreview" hidden>
+              <img
+                id="previewImage"
+                src=""
+                alt="Selected product preview"
+              >
+
+              <button
+                type="button"
+                id="removeImageButton"
+                class="remove-image-button"
+              >
+                Remove photo
+              </button>
+            </div>
+          </div>
+
+
+          <!-- PRIVACY NOTE -->
+          <div class="field full-width marketplace-privacy-note">
+            <strong>Keep your contact details private.</strong>
+            <p>
+              Buyers can contact you through ORBIT's private messaging
+              system. Don't put personal phone numbers, email addresses
+              or private addresses in your product description.
+            </p>
+          </div>
+
+        </div>
+
+
+        <div
+          class="form-message"
+          id="listingMessage"
+          role="status"
+          aria-live="polite"
+        ></div>
+
+
+        <div class="listing-form-actions">
+          <button
+            class="secondary-button"
+            id="cancelListingButton"
+            type="button"
+          >
+            Cancel
+          </button>
+
+          <button
+            class="primary-button"
+            id="publishListingButton"
+            type="submit"
+          >
+            Publish listing
+          </button>
+        </div>
+
+      </form>
+    </section>
+
+
+    <!-- PRODUCT DETAIL PANEL -->
+    <section
+      class="product-detail-section"
+      id="productDetailSection"
+      hidden
+      aria-label="Product details"
+    >
+      <div class="detail-panel-header">
+        <span class="eyebrow">PRODUCT DETAILS</span>
+
+        <button
+          id="closeProductDetailButton"
+          type="button"
+          aria-label="Close product details"
+        >
+          ×
+        </button>
+      </div>
+
+      <div id="productDetailContent"></div>
+
+      <div class="product-comments-section">
+        <h3>Join the conversation.</h3>
+
+        <form id="commentForm">
+          <label for="commentInput">Leave a comment</label>
+
+          <textarea
+            id="commentInput"
+            rows="2"
+            maxlength="1000"
+            placeholder="Ask a question or share your thoughts..."
+            required
+          ></textarea>
+
+          <button class="primary-button" type="submit">
+            Post comment
+          </button>
+        </form>
+
+        <div
+          id="commentStatus"
+          class="product-status"
+          role="status"
+          aria-live="polite"
+        ></div>
+
+        <div id="productCommentList"></div>
+      </div>
+    </section>
+
+
+    <!-- PRIVATE MESSAGES -->
+    <section
+      class="market-messages-section"
+      id="marketMessagesSection"
+      hidden
+    >
+      <div class="detail-panel-header">
+        <div>
+          <span class="eyebrow">PRIVATE CONVERSATIONS</span>
+          <h2>Your messages.</h2>
+        </div>
+
+        <button
+          id="closeMessagesButton"
+          type="button"
+          aria-label="Close messages"
+        >
+          ×
+        </button>
+      </div>
+
+      <div class="messages-layout">
+
+        <aside class="conversation-list">
+          <h3>Conversations</h3>
+
+          <div
+            id="conversationList"
+            aria-live="polite"
+          >
+            <p>Your conversations will appear here.</p>
+          </div>
+        </aside>
+
+
+        <div class="conversation-panel">
+
+          <div
+            class="conversation-header"
+            id="conversationHeader"
+          >
+            <p>Select a conversation to start chatting.</p>
+          </div>
+
+          <div
+            class="message-list"
+            id="messageList"
+            aria-live="polite"
+          ></div>
+
+          <form id="messageForm" class="message-composer">
+            <label for="messageInput">Your message</label>
+
+            <textarea
+              id="messageInput"
+              rows="2"
+              maxlength="3000"
+              placeholder="Write a message..."
+              disabled
+            ></textarea>
+
+            <button
+              type="submit"
+              id="sendMessageButton"
+              disabled
+            >
+              Send
+            </button>
+          </form>
+
+        </div>
+      </div>
+    </section>
+
+
+    <!-- PROFILE / SHOP PREVIEW -->
+    <section
+      class="market-shop-section"
+      id="marketShopSection"
+      hidden
+    >
+      <div class="detail-panel-header">
+        <div>
+          <span class="eyebrow">STUDENT SHOP</span>
+          <h2 id="shopHeading">Your shop.</h2>
+        </div>
+
+        <button
+          id="closeShopButton"
+          type="button"
+          aria-label="Close shop"
+        >
+          ×
+        </button>
+      </div>
+
+      <div class="shop-profile-card">
+        <div class="shop-avatar" id="shopAvatar">O</div>
+
+        <div>
+          <h3 id="shopDisplayName">Student seller</h3>
+          <p id="shopInstitution">ORBIT student</p>
+        </div>
+      </div>
+
+      <div class="shop-product-grid" id="shopProductGrid"></div>
+    </section>
+
+
+    <!-- FOOTER -->
+    <footer class="market-footer">
+      <a href="app.html" class="brand">
+        ORBIT<span>✳</span>
+      </a>
+
+      <p>
+        Discover. Connect. Trade.
+        <br>
+        Made for students, everywhere.
+      </p>
+
+      <span>
+        © <span id="currentYear"></span> ORBIT
+      </span>
+    </footer>
+
+  </div>
+
+</body>
+</html>

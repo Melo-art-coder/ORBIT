@@ -1,0 +1,173 @@
+
+document.addEventListener("DOMContentLoaded", () => {
+
+  // =====================================
+  // ORBIT MOBILE NAVIGATION
+  // =====================================
+
+  const menuToggle = document.querySelector("#menuToggle");
+  const navigation = document.querySelector("#navigation");
+
+  function closeMenu() {
+    if (!menuToggle || !navigation) return;
+
+    menuToggle.classList.remove("active");
+    navigation.classList.remove("open");
+    menuToggle.setAttribute("aria-expanded", "false");
+    menuToggle.setAttribute("aria-label", "Open navigation");
+    document.body.classList.remove("menu-open");
+  }
+
+  if (menuToggle && navigation) {
+
+    menuToggle.addEventListener("click", () => {
+      const isOpen = navigation.classList.toggle("open");
+
+      menuToggle.classList.toggle("active", isOpen);
+      menuToggle.setAttribute("aria-expanded", String(isOpen));
+      menuToggle.setAttribute(
+        "aria-label",
+        isOpen ? "Close navigation" : "Open navigation"
+      );
+
+      document.body.classList.toggle("menu-open", isOpen);
+    });
+
+    navigation.querySelectorAll("a").forEach(link => {
+      link.addEventListener("click", closeMenu);
+    });
+
+    document.addEventListener("keydown", event => {
+      if (event.key === "Escape") {
+        closeMenu();
+      }
+    });
+
+    window.addEventListener("resize", () => {
+      if (window.innerWidth > 760) {
+        closeMenu();
+      }
+    });
+  }
+
+
+  // =====================================
+  // SCROLL REVEAL ANIMATIONS
+  // =====================================
+
+  const revealElements = document.querySelectorAll(
+    ".hero-copy, .hero-visual, .intro-strip, " +
+    ".section-intro, .feature-card, " +
+    ".community-copy, .final-cta, .site-footer"
+  );
+
+  const reducedMotion = window.matchMedia(
+    "(prefers-reduced-motion: reduce)"
+  ).matches;
+
+  if ("IntersectionObserver" in window && !reducedMotion) {
+
+    revealElements.forEach(element => {
+      element.classList.add("reveal");
+    });
+
+    document.documentElement.classList.add("js-ready");
+
+    const revealObserver = new IntersectionObserver(
+      (entries, observer) => {
+
+        entries.forEach(entry => {
+
+          if (entry.isIntersecting) {
+            entry.target.classList.add("visible");
+            observer.unobserve(entry.target);
+          }
+
+        });
+
+      },
+      {
+        threshold: 0.12,
+        rootMargin: "0px 0px -35px 0px"
+      }
+    );
+
+    revealElements.forEach(element => {
+      revealObserver.observe(element);
+    });
+
+  }
+
+
+  // =====================================
+  // ORBIT INTERACTIVE MOVEMENT
+  // =====================================
+
+  const orbitSystem = document.querySelector(".orbit-system");
+
+  const floatingCards = document.querySelectorAll(".floating-card");
+
+  const canUsePointer = window.matchMedia(
+    "(hover: hover) and (pointer: fine)"
+  ).matches;
+
+  if (orbitSystem && canUsePointer && !reducedMotion) {
+
+    orbitSystem.addEventListener("pointermove", event => {
+
+      const bounds = orbitSystem.getBoundingClientRect();
+
+      const centerX = bounds.left + bounds.width / 2;
+      const centerY = bounds.top + bounds.height / 2;
+
+      const moveX = (event.clientX - centerX) / bounds.width;
+      const moveY = (event.clientY - centerY) / bounds.height;
+
+      floatingCards.forEach((card, index) => {
+
+        const intensity = (index + 1) * 7;
+
+        card.style.setProperty(
+          "--move-x",
+          `${moveX * intensity}px`
+        );
+
+        card.style.setProperty(
+          "--move-y",
+          `${moveY * intensity}px`
+        );
+
+      });
+
+    });
+
+    orbitSystem.addEventListener("pointerleave", () => {
+
+      floatingCards.forEach(card => {
+        card.style.setProperty("--move-x", "0px");
+        card.style.setProperty("--move-y", "0px");
+      });
+
+    });
+
+  }
+
+
+  // =====================================
+  // CURRENT YEAR
+  // =====================================
+
+  const yearElement = document.querySelector("[data-current-year]");
+
+  if (yearElement) {
+    yearElement.textContent = new Date().getFullYear();
+  }
+
+
+  // =====================================
+  // INITIALISE
+  // =====================================
+
+  console.log("ORBIT landing page initialised.");
+
+});

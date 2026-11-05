@@ -1,0 +1,164 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#f8f5ef">
+  <meta name="description" content="Your personal AI-powered study companion on ORBIT.">
+
+  <title>Study Companion | ORBIT</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="study.css">
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="auth.js" defer></script>
+  <script src="study.js" defer></script>
+</head>
+
+<body>
+
+  <div class="study-background">
+    <div class="background-orb orb-one"></div>
+    <div class="background-orb orb-two"></div>
+  </div>
+
+  <header class="study-header">
+    <a href="app.html" class="brand">
+      <span class="brand-symbol">O</span>
+      <span>ORBIT</span>
+    </a>
+
+    <a href="app.html" class="back-link">
+      <span>←</span> Back to dashboard
+    </a>
+  </header>
+
+  <main class="study-layout">
+
+    <section class="study-intro">
+      <div class="eyebrow">
+        <span class="status-dot"></span>
+        YOUR PERSONAL STUDY SPACE
+      </div>
+
+      <h1>Think deeper.<br><span>Learn better.</span></h1>
+
+      <p>
+        Meet your AI study companion. Ask questions, explore difficult
+        concepts and make your learning experience work for you.
+      </p>
+
+      <div class="student-context">
+        <div class="context-icon">✳</div>
+        <div>
+          <strong id="studentName">Your study companion</strong>
+          <span id="studentCourseContext">Ready when you are</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="chat-panel">
+
+      <div class="chat-heading">
+        <div class="assistant-identity">
+          <div class="assistant-avatar">✳</div>
+          <div>
+            <h2>ORBIT AI</h2>
+            <span><i></i> Study assistant</span>
+          </div>
+        </div>
+
+        <button type="button" id="clearChatButton" class="clear-chat">
+          Clear chat
+        </button>
+      </div>
+
+      <div
+        class="chat-messages"
+        id="chatMessages"
+        aria-live="polite"
+        aria-label="Conversation"
+      >
+        <div class="welcome-message" id="welcomeMessage">
+          <div class="welcome-symbol">✳</div>
+
+          <h3>Hey there. What are we learning today?</h3>
+
+          <p>
+            I can help you understand concepts, break down difficult
+            topics and guide you through academic problems.
+          </p>
+
+          <div class="suggestion-list">
+            <button type="button" class="suggestion" data-prompt="Explain a difficult topic to me in simple terms.">
+              <span>✦</span>
+              Explain a difficult topic
+            </button>
+
+            <button type="button" class="suggestion" data-prompt="Help me create a study plan for my courses.">
+              <span>◷</span>
+              Create a study plan
+            </button>
+
+            <button type="button" class="suggestion" data-prompt="Help me understand a concept using practical examples.">
+              <span>⌘</span>
+              Give me practical examples
+            </button>
+
+            <button type="button" class="suggestion" data-prompt="Quiz me on a topic and explain my mistakes.">
+              <span>✎</span>
+              Test my understanding
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="chat-composer">
+        <div class="composer-tools">
+          <span>Ask anything about your studies</span>
+
+          <span class="composer-hint">ORBIT AI</span>
+        </div>
+
+        <form id="chatForm">
+          <textarea
+            id="messageInput"
+            rows="1"
+            maxlength="5000"
+            placeholder="What would you like to understand today?"
+            aria-label="Your question"
+            required
+          ></textarea>
+
+          <div class="composer-bottom">
+            <span class="input-note">Be curious. Keep learning.</span>
+
+            <button type="submit" id="sendMessageButton">
+              <span>Send</span>
+              <span>↗</span>
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <p class="chat-disclaimer">
+        AI can make mistakes. Check important academic information
+        against your course materials.
+      </p>
+
+    </section>
+
+  </main>
+
+  <footer class="study-footer">
+    <span>ORBIT ✳</span>
+    <span>Built for every student's journey.</span>
+  </footer>
+
+</body>
+</html>

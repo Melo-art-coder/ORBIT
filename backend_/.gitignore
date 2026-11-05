@@ -1,0 +1,17 @@
+
+# Private environment variables
+.env
+.env.local
+.env.production
+
+# Dependencies
+node_modules/
+
+# Debug logs
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# System files
+.DS_Store
+Thumbs.db

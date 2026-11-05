@@ -1,0 +1,480 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#f8f6f1">
+  <meta name="description" content="Your personal ORBIT student dashboard. Academics, campus life and everything in between.">
+
+  <title>My Dashboard | ORBIT</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="app.css">
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="auth.js" defer></script>
+  <script src="app.js" defer></script>
+</head>
+
+<body class="app-body">
+
+  <div class="app-layout">
+
+    <!-- SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+
+      <a href="index.html" class="app-brand">
+        <span class="brand-symbol">O</span>
+        <span>ORBIT<span class="brand-dot">.</span></span>
+      </a>
+
+      <div class="sidebar-profile">
+        <div class="profile-avatar" id="profileInitials">O</div>
+
+        <div class="profile-details">
+          <strong id="profileName">Your profile</strong>
+          <span id="institutionName">Your institution</span>
+        </div>
+      </div>
+
+      <nav class="sidebar-navigation" aria-label="Main navigation">
+
+        <span class="nav-heading">WORKSPACE</span>
+
+        <a href="#overview" class="nav-link active">
+          <span class="nav-icon">⌂</span>
+          <span>Overview</span>
+        </a>
+
+        <a href="#academics" class="nav-link">
+          <span class="nav-icon">▤</span>
+          <span>My academics</span>
+        </a>
+
+        <a href="#schedule" class="nav-link">
+          <span class="nav-icon">▦</span>
+          <span>Timetable</span>
+        </a>
+
+        <a href="#announcements" class="nav-link">
+          <span class="nav-icon">◉</span>
+          <span>Announcements</span>
+        </a>
+
+        <span class="nav-heading">CAMPUS LIFE</span>
+
+        <a href="#community" class="nav-link">
+          <span class="nav-icon">◎</span>
+          <span>Community</span>
+          <span class="coming-soon">Soon</span>
+        </a>
+
+        <a href="#marketplace" class="nav-link">
+          <span class="nav-icon">◇</span>
+          <span>Marketplace</span>
+          <span class="coming-soon">Soon</span>
+        </a>
+
+        <a href="#opportunities" class="nav-link">
+          <span class="nav-icon">✳</span>
+          <span>Opportunities</span>
+          <span class="coming-soon">Soon</span>
+        </a>
+
+        <span class="nav-heading">PERSONAL</span>
+
+        <a href="#profile" class="nav-link">
+          <span class="nav-icon">○</span>
+          <span>My profile</span>
+        </a>
+
+      </nav>
+
+      <div class="sidebar-bottom">
+
+        <div class="sidebar-note">
+          <span class="note-orbit">✳</span>
+          <p>Your journey is yours. Make every moment count.</p>
+        </div>
+
+        <button type="button" class="sign-out-button" id="signOutButton">
+          <span>↗</span>
+          Sign out
+        </button>
+
+      </div>
+
+    </aside>
+
+
+    <!-- MAIN AREA -->
+    <div class="main-area">
+
+      <!-- TOP BAR -->
+      <header class="topbar">
+
+        <button
+          type="button"
+          class="mobile-menu-button"
+          id="mobileMenuButton"
+          aria-label="Open navigation"
+          aria-expanded="false"
+          aria-controls="sidebar"
+        >
+          <span></span>
+          <span></span>
+          <span></span>
+        </button>
+
+        <div class="topbar-location">
+          <span class="location-dot"></span>
+          <span>YOUR STUDENT SPACE</span>
+        </div>
+
+        <div class="topbar-actions">
+
+          <span class="current-date" id="todayDate">Loading date...</span>
+
+          <button
+            type="button"
+            class="icon-button"
+            id="themeToggle"
+            aria-label="Switch colour theme"
+            title="Switch theme"
+          >
+            ☾
+          </button>
+
+          <a href="#profile" class="topbar-avatar" id="topbarAvatar">
+            O
+          </a>
+
+        </div>
+
+      </header>
+
+
+      <!-- DASHBOARD CONTENT -->
+      <main class="dashboard-content" id="overview">
+
+        <!-- WELCOME -->
+        <section class="welcome-section">
+
+          <div class="welcome-copy">
+            <span class="eyebrow">YOUR WORLD, IN MOTION</span>
+
+            <h1>
+              Good to have you here,
+              <span id="studentGreeting">student.</span>
+            </h1>
+
+            <p>
+              Your academics, campus life and opportunities.
+              Everything starts here.
+            </p>
+          </div>
+
+          <div class="welcome-decoration" aria-hidden="true">
+            <div class="welcome-orbit orbit-one"></div>
+            <div class="welcome-orbit orbit-two"></div>
+            <div class="welcome-orbit orbit-three"></div>
+            <span>O</span>
+            <i></i>
+          </div>
+
+        </section>
+
+
+        <!-- ACADEMIC IDENTITY -->
+        <section class="identity-strip">
+
+          <div class="identity-item">
+            <span class="identity-label">INSTITUTION</span>
+            <strong id="dashboardInstitution">Loading...</strong>
+          </div>
+
+          <div class="identity-divider"></div>
+
+          <div class="identity-item">
+            <span class="identity-label">PROGRAMME</span>
+            <strong id="dashboardProgramme">Loading...</strong>
+          </div>
+
+          <div class="identity-divider"></div>
+
+          <div class="identity-item">
+            <span class="identity-label">CURRENT LEVEL</span>
+            <strong id="dashboardLevel">Loading...</strong>
+          </div>
+
+          <div class="identity-divider"></div>
+
+          <div class="identity-item">
+            <span class="identity-label">ACADEMIC SESSION</span>
+            <strong id="dashboardSession">Loading...</strong>
+          </div>
+
+        </section>
+
+
+        <!-- OVERVIEW -->
+        <section class="dashboard-section">
+
+          <div class="section-heading">
+            <div>
+              <span class="eyebrow">THE BIG PICTURE</span>
+              <h2>Your overview</h2>
+            </div>
+
+            <span class="section-caption">Your academic snapshot</span>
+          </div>
+
+          <div class="stats-grid">
+
+            <article class="stat-card stat-primary">
+              <div class="stat-top">
+                <span>Registered courses</span>
+                <span class="stat-icon">▤</span>
+              </div>
+
+              <strong class="stat-value" id="courseCount">—</strong>
+              <span class="stat-description">Courses in your semester</span>
+            </article>
+
+            <article class="stat-card">
+              <div class="stat-top">
+                <span>Total credit units</span>
+                <span class="stat-icon">✳</span>
+              </div>
+
+              <strong class="stat-value" id="creditCount">—</strong>
+              <span class="stat-description">Across your registered courses</span>
+            </article>
+
+            <article class="stat-card">
+              <div class="stat-top">
+                <span>Current semester</span>
+                <span class="stat-icon">◷</span>
+              </div>
+
+              <strong class="stat-value stat-text-value" id="currentSemester">—</strong>
+              <span class="stat-description">Your active academic period</span>
+            </article>
+
+            <article class="stat-card">
+              <div class="stat-top">
+                <span>Account status</span>
+                <span class="stat-icon">◎</span>
+              </div>
+
+              <strong class="stat-value stat-text-value">Active</strong>
+              <span class="stat-description">Your ORBIT account is ready</span>
+            </article>
+
+          </div>
+
+        </section>
+
+
+        <!-- ACADEMICS AND SCHEDULE -->
+        <div class="dashboard-columns">
+
+          <section class="content-panel academics-panel" id="academics">
+
+            <div class="panel-heading">
+              <div>
+                <span class="eyebrow">YOUR LEARNING SPACE</span>
+                <h2>My courses</h2>
+              </div>
+
+              <span class="panel-count" id="coursePanelCount">0 courses</span>
+            </div>
+
+            <div class="course-list" id="dashboardCourseList">
+
+              <div class="empty-state">
+                <span class="empty-icon">▤</span>
+                <strong>Your courses will appear here</strong>
+                <p>Complete your ORBIT setup to see your registered courses.</p>
+              </div>
+
+            </div>
+
+          </section>
+
+
+          <section class="content-panel schedule-panel" id="schedule">
+
+            <div class="panel-heading">
+              <div>
+                <span class="eyebrow">STAY ON TRACK</span>
+                <h2>Your timetable</h2>
+              </div>
+
+              <span class="panel-count">This week</span>
+            </div>
+
+            <div class="schedule-empty">
+
+              <div class="schedule-illustration" aria-hidden="true">
+                <span>◷</span>
+                <i></i>
+              </div>
+
+              <strong>Your schedule starts here</strong>
+
+              <p>
+                Your weekly lectures and activities will live here.
+              </p>
+
+              <span class="feature-label">TIMETABLE MODULE COMING SOON</span>
+
+            </div>
+
+          </section>
+
+        </div>
+
+
+        <!-- ANNOUNCEMENTS -->
+        <section class="content-panel announcements-panel" id="announcements">
+
+          <div class="panel-heading">
+            <div>
+              <span class="eyebrow">WHAT'S HAPPENING</span>
+              <h2>Announcements</h2>
+            </div>
+
+            <span class="panel-count">Campus updates</span>
+          </div>
+
+          <div class="announcement-empty">
+
+            <div class="announcement-symbol">✳</div>
+
+            <div>
+              <strong>Nothing new just yet.</strong>
+              <p>
+                Important academic and campus updates will appear here.
+              </p>
+            </div>
+
+          </div>
+
+        </section>
+
+
+        <!-- QUICK ACCESS -->
+        <section class="dashboard-section quick-access-section">
+
+          <div class="section-heading">
+            <div>
+              <span class="eyebrow">MAKE YOUR MOVE</span>
+              <h2>Explore your ORBIT</h2>
+            </div>
+          </div>
+
+          <div class="quick-access-grid">
+
+            <a href="#academics" class="quick-card">
+              <span class="quick-card-icon">▤</span>
+              <strong>Academics</strong>
+              <span>Keep your learning organised.</span>
+              <span class="quick-arrow">↗</span>
+            </a>
+
+            <a href="#schedule" class="quick-card">
+              <span class="quick-card-icon">◷</span>
+              <strong>My timetable</strong>
+              <span>Stay ahead of your schedule.</span>
+              <span class="quick-arrow">↗</span>
+            </a>
+
+            <a href="#community" class="quick-card">
+              <span class="quick-card-icon">◎</span>
+              <strong>Community</strong>
+              <span>Connect with student life.</span>
+              <span class="quick-arrow">↗</span>
+            </a>
+
+            <a href="#opportunities" class="quick-card">
+              <span class="quick-card-icon">✳</span>
+              <strong>Opportunities</strong>
+              <span>Discover what's possible.</span>
+              <span class="quick-arrow">↗</span>
+            </a>
+
+          </div>
+
+        </section>
+
+
+        <!-- FUTURE MODULE ANCHORS -->
+        <section class="future-module-anchors" aria-label="Future ORBIT modules">
+
+          <div id="community"></div>
+          <div id="marketplace"></div>
+          <div id="opportunities"></div>
+
+        </section>
+
+
+        <!-- PROFILE -->
+        <section class="content-panel profile-panel" id="profile">
+
+          <div class="panel-heading">
+            <div>
+              <span class="eyebrow">YOUR SPACE</span>
+              <h2>Student profile</h2>
+            </div>
+          </div>
+
+          <div class="profile-summary">
+
+            <div class="profile-avatar profile-avatar-large" id="profileLargeAvatar">
+              O
+            </div>
+
+            <div>
+              <strong id="profileFullName">Your name</strong>
+              <p id="profileProgramme">Your programme</p>
+              <span id="profileDepartment">Your department</span>
+            </div>
+
+          </div>
+
+          <p class="profile-note">
+            Your profile is connected to your ORBIT account.
+            Profile editing will be available in a future update.
+          </p>
+
+        </section>
+
+
+        <!-- FOOTER -->
+        <footer class="dashboard-footer">
+
+          <a href="index.html" class="footer-brand">
+            ORBIT<span>.</span>
+          </a>
+
+          <p>Built for the journey. Designed for every student.</p>
+
+          <span>© <span id="currentYear"></span> ORBIT</span>
+
+        </footer>
+
+      </main>
+
+    </div>
+
+  </div>
+
+</body>
+</html>
+

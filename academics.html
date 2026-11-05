@@ -1,0 +1,230 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#f8f5ef">
+
+  <title>My Academics | ORBIT</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="academics.css">
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+  <script src="auth.js" defer></script>
+  <script src="academics.js" defer></script>
+</head>
+
+<body>
+
+  <div class="academic-background">
+    <span class="background-orb orb-one"></span>
+    <span class="background-orb orb-two"></span>
+  </div>
+
+  <header class="academic-header">
+    <a href="app.html" class="brand">
+      <span class="brand-symbol">O✳</span>
+      <span>ORBIT</span>
+    </a>
+
+    <a href="app.html" class="back-link">
+      <span>←</span> Dashboard
+    </a>
+  </header>
+
+  <main class="academic-container">
+
+    <section class="academic-heading">
+      <div>
+        <span class="eyebrow">YOUR ACADEMIC SPACE</span>
+
+        <h1>Make room for <em>growth.</em></h1>
+
+        <p>
+          Keep your courses organised, track your credit units
+          and stay on top of your academic journey.
+        </p>
+      </div>
+
+      <div class="academic-decoration">
+        <span>✳</span>
+        <small>LEARN · GROW · REPEAT</small>
+      </div>
+    </section>
+
+    <section class="student-strip">
+      <div class="student-avatar" id="studentAvatar">O</div>
+
+      <div class="student-details">
+        <span>YOUR ACADEMIC PROFILE</span>
+        <h2 id="studentName">Loading student...</h2>
+        <p id="studentProgramme">Loading programme...</p>
+      </div>
+
+      <div class="session-details">
+        <span>ACADEMIC SESSION</span>
+        <strong id="academicSession">—</strong>
+        <small id="academicSemester">—</small>
+      </div>
+    </section>
+
+    <section class="academic-stats">
+
+      <article class="stat-card">
+        <span class="stat-icon">▤</span>
+        <div>
+          <p>Registered courses</p>
+          <h2 id="courseCount">0</h2>
+        </div>
+      </article>
+
+      <article class="stat-card">
+        <span class="stat-icon">✳</span>
+        <div>
+          <p>Total credit units</p>
+          <h2 id="totalUnits">0</h2>
+        </div>
+      </article>
+
+      <article class="stat-card">
+        <span class="stat-icon">◷</span>
+        <div>
+          <p>Academic level</p>
+          <h2 id="studyLevel">—</h2>
+        </div>
+      </article>
+
+    </section>
+
+    <section class="academic-workspace">
+
+      <div class="course-panel">
+
+        <div class="panel-heading">
+          <div>
+            <span class="eyebrow">YOUR LEARNING LIST</span>
+            <h2>My courses</h2>
+          </div>
+
+          <span class="course-counter" id="coursePanelCount">
+            0 courses
+          </span>
+        </div>
+
+        <div class="course-toolbar">
+          <div class="search-box">
+            <span>⌕</span>
+            <input
+              type="search"
+              id="searchCourses"
+              placeholder="Search course code or title..."
+              autocomplete="off"
+            >
+          </div>
+        </div>
+
+        <div class="course-list" id="courseList">
+          <div class="loading-state">
+            <span class="loading-spinner"></span>
+            <p>Preparing your courses...</p>
+          </div>
+        </div>
+
+        <div class="empty-state" id="emptyState" hidden>
+          <span class="empty-icon">✳</span>
+          <h3>Your academic journey starts here.</h3>
+          <p>
+            You haven't added any courses yet.
+            Add your registered courses to get organised.
+          </p>
+        </div>
+
+      </div>
+
+      <aside class="add-course-panel">
+
+        <span class="eyebrow">BUILD YOUR SEMESTER</span>
+
+        <h2>Add a course</h2>
+
+        <p class="panel-description">
+          Enter the details of a course you're currently taking.
+        </p>
+
+        <form id="courseForm" novalidate>
+
+          <div class="field-group">
+            <label for="courseCode">Course code</label>
+            <input
+              type="text"
+              id="courseCode"
+              placeholder="e.g. COS 201"
+              maxlength="30"
+              required
+            >
+          </div>
+
+          <div class="field-group">
+            <label for="courseTitle">Course title</label>
+            <input
+              type="text"
+              id="courseTitle"
+              placeholder="e.g. Computer Programming"
+              maxlength="120"
+              required
+            >
+          </div>
+
+          <div class="field-group">
+            <label for="courseUnits">Credit units</label>
+            <select id="courseUnits" required>
+              <option value="">Select credit units</option>
+              <option value="1">1 unit</option>
+              <option value="2">2 units</option>
+              <option value="3">3 units</option>
+              <option value="4">4 units</option>
+              <option value="5">5 units</option>
+              <option value="6">6 units</option>
+              <option value="7">7 units</option>
+              <option value="8">8 units</option>
+              <option value="9">9 units</option>
+              <option value="10">10 units</option>
+            </select>
+          </div>
+
+          <p class="form-message" id="courseMessage" role="status"></p>
+
+          <button type="submit" id="saveCourseButton">
+            <span>+</span> Add course
+          </button>
+
+        </form>
+
+        <div class="course-tip">
+          <span>✦</span>
+          <p>
+            Make sure your course codes and credit units
+            match your institution's official registration.
+          </p>
+        </div>
+
+      </aside>
+
+    </section>
+
+    <footer class="academic-footer">
+      <span>ORBIT ✳</span>
+      <p>Your world. All in motion.</p>
+      <a href="app.html">Back to your dashboard ↑</a>
+    </footer>
+
+  </main>
+
+</body>
+</html>

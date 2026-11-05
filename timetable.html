@@ -1,0 +1,237 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#f8f5ef">
+
+  <title>My Timetable | ORBIT</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="timetable.css">
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+  <script src="auth.js" defer></script>
+  <script src="timetable.js" defer></script>
+</head>
+
+<body>
+
+  <div class="timetable-background">
+    <span class="background-orb orb-one"></span>
+    <span class="background-orb orb-two"></span>
+  </div>
+
+  <header class="timetable-header">
+    <a href="app.html" class="brand">
+      <span class="brand-symbol">O✳</span>
+      <span>ORBIT</span>
+    </a>
+
+    <a href="app.html" class="back-link">
+      <span>←</span> Dashboard
+    </a>
+  </header>
+
+  <main class="timetable-container">
+
+    <section class="timetable-intro">
+      <div>
+        <span class="eyebrow">YOUR WEEK, IN ORBIT</span>
+
+        <h1>Make time for <em>everything.</em></h1>
+
+        <p>
+          Keep your lectures organised, plan your week
+          and make every hour count.
+        </p>
+      </div>
+
+      <div class="week-decoration">
+        <span>◷</span>
+        <small>PLAN WITH PURPOSE</small>
+      </div>
+    </section>
+
+    <section class="timetable-profile">
+      <div class="profile-avatar" id="studentAvatar">O</div>
+
+      <div class="profile-info">
+        <span>YOUR TIMETABLE</span>
+        <h2 id="studentName">Loading student...</h2>
+        <p id="studentProgramme">Loading programme...</p>
+      </div>
+
+      <div class="session-info">
+        <span>ACADEMIC SESSION</span>
+        <strong id="academicSession">—</strong>
+        <small id="academicSemester">—</small>
+      </div>
+    </section>
+
+    <section class="week-controls">
+
+      <div class="week-heading">
+        <span class="eyebrow">YOUR WEEKLY PLAN</span>
+        <h2 id="weekRange">This week</h2>
+      </div>
+
+      <div class="week-navigation">
+        <button type="button" id="previousWeek" aria-label="Previous week">
+          ←
+        </button>
+
+        <button type="button" id="todayButton">
+          Today
+        </button>
+
+        <button type="button" id="nextWeek" aria-label="Next week">
+          →
+        </button>
+      </div>
+
+    </section>
+
+    <section class="timetable-layout">
+
+      <div class="schedule-panel">
+
+        <div class="schedule-topline">
+          <h3>Weekly schedule</h3>
+          <span id="eventCount">0 activities</span>
+        </div>
+
+        <div class="week-grid" id="weekGrid">
+
+          <div class="schedule-loading">
+            <span class="loading-spinner"></span>
+            <p>Preparing your timetable...</p>
+          </div>
+
+        </div>
+
+        <div class="schedule-empty" id="scheduleEmpty" hidden>
+          <span>✳</span>
+          <h3>Your week is wide open.</h3>
+          <p>
+            Add your first lecture or academic activity
+            to start organising your week.
+          </p>
+        </div>
+
+      </div>
+
+      <aside class="event-panel">
+
+        <span class="eyebrow">PLAN SOMETHING</span>
+
+        <h2>Add an activity</h2>
+
+        <p class="event-description">
+          Add a lecture, practical, tutorial or personal
+          academic activity to your timetable.
+        </p>
+
+        <form id="eventForm" novalidate>
+
+          <div class="field-group">
+            <label for="eventTitle">Activity title</label>
+            <input
+              type="text"
+              id="eventTitle"
+              placeholder="e.g. Computer Programming"
+              maxlength="100"
+              required
+            >
+          </div>
+
+          <div class="field-group">
+            <label for="eventCourse">Course</label>
+            <select id="eventCourse">
+              <option value="">Select a course (optional)</option>
+            </select>
+          </div>
+
+          <div class="field-group">
+            <label for="eventType">Activity type</label>
+            <select id="eventType" required>
+              <option value="">Choose activity type</option>
+              <option value="Lecture">Lecture</option>
+              <option value="Practical">Practical</option>
+              <option value="Tutorial">Tutorial</option>
+              <option value="Study">Personal study</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+
+          <div class="field-group">
+            <label for="eventDay">Day</label>
+            <select id="eventDay" required>
+              <option value="">Choose a day</option>
+              <option value="1">Monday</option>
+              <option value="2">Tuesday</option>
+              <option value="3">Wednesday</option>
+              <option value="4">Thursday</option>
+              <option value="5">Friday</option>
+              <option value="6">Saturday</option>
+              <option value="0">Sunday</option>
+            </select>
+          </div>
+
+          <div class="time-fields">
+            <div class="field-group">
+              <label for="eventStart">Start time</label>
+              <input type="time" id="eventStart" required>
+            </div>
+
+            <div class="field-group">
+              <label for="eventEnd">End time</label>
+              <input type="time" id="eventEnd" required>
+            </div>
+          </div>
+
+          <div class="field-group">
+            <label for="eventLocation">Location</label>
+            <input
+              type="text"
+              id="eventLocation"
+              placeholder="e.g. LT 2 or Online"
+              maxlength="100"
+            >
+          </div>
+
+          <p class="form-message" id="eventMessage" role="status"></p>
+
+          <button type="submit" id="saveEventButton">
+            <span>+</span> Add to timetable
+          </button>
+
+        </form>
+
+        <div class="event-tip">
+          <span>✦</span>
+          <p>
+            Your timetable belongs to you. You can update
+            or remove activities whenever your schedule changes.
+          </p>
+        </div>
+
+      </aside>
+
+    </section>
+
+    <footer class="timetable-footer">
+      <span>ORBIT ✳</span>
+      <p>Your world. All in motion.</p>
+      <a href="app.html">Back to dashboard ↑</a>
+    </footer>
+
+  </main>
+
+</body>
+</html>

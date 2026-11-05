@@ -1,0 +1,415 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#f8f6f1">
+
+  <title>Set Up Your ORBIT | ORBIT</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="setup.css">
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="auth.js" defer></script>
+  <script src="setup.js" defer></script>
+</head>
+
+<body class="setup-page">
+
+  <div class="setup-background">
+    <span class="setup-orb setup-orb-one"></span>
+    <span class="setup-orb setup-orb-two"></span>
+  </div>
+
+  <header class="setup-header">
+    <a href="index.html" class="brand">
+      <span class="brand-symbol">O</span>
+      <span>ORBIT<span class="brand-star">✳</span></span>
+    </a>
+
+    <span class="setup-progress-label">
+      LET'S MAKE THIS YOURS
+    </span>
+  </header>
+
+  <main class="setup-main">
+
+    <section class="setup-intro">
+      <span class="setup-eyebrow">
+        <span class="setup-status-dot"></span>
+        YOUR PERSONAL ORBIT
+      </span>
+
+      <h1>
+        First, let's get to
+        <span>know you.</span>
+      </h1>
+
+      <p>
+        A few details will help us shape your academic
+        and campus experience around you.
+      </p>
+
+      <div class="setup-progress">
+        <span class="progress-track">
+          <span class="progress-fill"></span>
+        </span>
+        <span>YOUR PROFILE SETUP</span>
+      </div>
+    </section>
+
+    <form id="setupForm" class="setup-form" novalidate>
+
+      <!-- PERSONAL INFORMATION -->
+
+      <section class="setup-section">
+
+        <div class="setup-section-heading">
+          <span class="section-number">01</span>
+
+          <div>
+            <h2>Your identity</h2>
+            <p>How should ORBIT know you?</p>
+          </div>
+        </div>
+
+        <div class="setup-grid">
+
+          <div class="setup-field">
+            <label for="displayName">
+              What should we call you?
+            </label>
+
+            <input
+              type="text"
+              id="displayName"
+              name="displayName"
+              placeholder="e.g. Melo"
+              maxlength="40"
+              required
+            >
+
+            <small>This is the name you'll see around ORBIT.</small>
+          </div>
+
+          <div class="setup-field">
+            <label for="fullName">
+              Your full name
+            </label>
+
+            <input
+              type="text"
+              id="fullName"
+              name="fullName"
+              placeholder="Your official name"
+              autocomplete="name"
+              required
+            >
+          </div>
+
+        </div>
+
+      </section>
+
+      <!-- INSTITUTION -->
+
+      <section class="setup-section">
+
+        <div class="setup-section-heading">
+          <span class="section-number">02</span>
+
+          <div>
+            <h2>Your institution</h2>
+            <p>Tell us where you're studying.</p>
+          </div>
+        </div>
+
+        <div class="setup-field">
+          <label for="institution">
+            University, polytechnic or college
+          </label>
+
+          <input
+            type="text"
+            id="institution"
+            name="institution"
+            placeholder="Enter your institution's name"
+            autocomplete="organization"
+            required
+          >
+        </div>
+
+        <div class="setup-grid">
+
+          <div class="setup-field">
+            <label for="faculty">Faculty / School</label>
+
+            <input
+              type="text"
+              id="faculty"
+              name="faculty"
+              placeholder="e.g. Computing"
+            >
+          </div>
+
+          <div class="setup-field">
+            <label for="department">Department</label>
+
+            <input
+              type="text"
+              id="department"
+              name="department"
+              placeholder="e.g. Computer Science"
+              required
+            >
+          </div>
+
+          <div class="setup-field">
+            <label for="programme">Programme / Course of study</label>
+
+            <input
+              type="text"
+              id="programme"
+              name="programme"
+              placeholder="e.g. B.Sc. Computer Science"
+              required
+            >
+          </div>
+
+          <div class="setup-field">
+            <label for="studyLevel">Current study level</label>
+
+            <select id="studyLevel" name="studyLevel" required>
+              <option value="">Choose your level</option>
+              <option value="100 Level">100 Level</option>
+              <option value="200 Level">200 Level</option>
+              <option value="300 Level">300 Level</option>
+              <option value="400 Level">400 Level</option>
+              <option value="500 Level">500 Level</option>
+              <option value="600 Level">600 Level</option>
+              <option value="ND1">ND1</option>
+              <option value="ND2">ND2</option>
+              <option value="HND1">HND1</option>
+              <option value="HND2">HND2</option>
+              <option value="NCE 1">NCE 1</option>
+              <option value="NCE 2">NCE 2</option>
+              <option value="NCE 3">NCE 3</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+
+        </div>
+
+        <div class="setup-grid">
+
+          <div class="setup-field">
+            <label for="academicSession">Academic session</label>
+
+            <input
+              type="text"
+              id="academicSession"
+              name="academicSession"
+              placeholder="e.g. 2026/2027"
+            >
+          </div>
+
+          <div class="setup-field">
+            <label for="semester">Current semester</label>
+
+            <select id="semester" name="semester">
+              <option value="">Choose semester</option>
+              <option value="First Semester">First Semester</option>
+              <option value="Second Semester">Second Semester</option>
+              <option value="Third Semester">Third Semester</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+
+        </div>
+
+      </section>
+
+      <!-- COURSES -->
+
+      <section class="setup-section">
+
+        <div class="setup-section-heading">
+          <span class="section-number">03</span>
+
+          <div>
+            <h2>Your courses</h2>
+            <p>Add the courses you're currently taking.</p>
+          </div>
+        </div>
+
+        <div id="courseList" class="course-list">
+
+          <div class="course-empty" id="courseEmpty">
+            <span class="course-empty-icon">✳</span>
+            <p>Your courses will appear here.</p>
+            <small>You can add more courses whenever you need.</small>
+          </div>
+
+        </div>
+
+        <div class="course-entry">
+
+          <div class="setup-grid course-input-grid">
+
+            <div class="setup-field">
+              <label for="courseCode">Course code</label>
+
+              <input
+                type="text"
+                id="courseCode"
+                placeholder="e.g. COS 201"
+              >
+            </div>
+
+            <div class="setup-field">
+              <label for="courseTitle">Course title</label>
+
+              <input
+                type="text"
+                id="courseTitle"
+                placeholder="e.g. Object Oriented Programming"
+              >
+            </div>
+
+            <div class="setup-field">
+              <label for="courseUnits">Credit units</label>
+
+              <input
+                type="number"
+                id="courseUnits"
+                min="1"
+                max="30"
+                placeholder="e.g. 3"
+              >
+            </div>
+
+          </div>
+
+          <button type="button" id="addCourseButton" class="add-course-button">
+            <span>+</span> Add course
+          </button>
+
+        </div>
+
+        <small class="course-hint">
+          You can skip this step and add your courses later.
+        </small>
+
+      </section>
+
+      <!-- APPEARANCE -->
+
+      <section class="setup-section">
+
+        <div class="setup-section-heading">
+          <span class="section-number">04</span>
+
+          <div>
+            <h2>Set your atmosphere</h2>
+            <p>Choose how you want ORBIT to look.</p>
+          </div>
+        </div>
+
+        <div class="theme-options">
+
+          <label class="theme-option selected" data-theme-option="light">
+            <input
+              type="radio"
+              name="theme"
+              value="light"
+              checked
+            >
+
+            <span class="theme-preview light-preview">
+              <span class="preview-top"></span>
+              <span class="preview-content">
+                <span></span>
+                <span></span>
+                <span></span>
+              </span>
+            </span>
+
+            <span class="theme-description">
+              <strong>Light mode</strong>
+              <small>Clean, warm and airy</small>
+            </span>
+
+            <span class="theme-check">✓</span>
+          </label>
+
+          <label class="theme-option" data-theme-option="dark">
+            <input
+              type="radio"
+              name="theme"
+              value="dark"
+            >
+
+            <span class="theme-preview dark-preview">
+              <span class="preview-top"></span>
+              <span class="preview-content">
+                <span></span>
+                <span></span>
+                <span></span>
+              </span>
+            </span>
+
+            <span class="theme-description">
+              <strong>Dark mode</strong>
+              <small>Calm, focused and easy on the eyes</small>
+            </span>
+
+            <span class="theme-check">✓</span>
+          </label>
+
+        </div>
+
+      </section>
+
+      <!-- SUBMISSION -->
+
+      <div
+        id="setupMessage"
+        class="setup-message"
+        role="status"
+        aria-live="polite"
+      ></div>
+
+      <div class="setup-submit-area">
+
+        <p>
+          You can update these details later in your settings.
+        </p>
+
+        <button
+          type="submit"
+          id="finishSetupButton"
+          class="finish-setup-button"
+        >
+          <span>Build my ORBIT</span>
+          <span class="finish-arrow">↗</span>
+        </button>
+
+      </div>
+
+    </form>
+
+    <footer class="setup-footer">
+      <span>© <span id="currentYear"></span> ORBIT</span>
+      <span>YOUR WORLD. ALL IN MOTION.</span>
+    </footer>
+
+  </main>
+
+</body>
+</html>

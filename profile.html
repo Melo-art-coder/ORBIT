@@ -1,0 +1,316 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#f8f6f1">
+  <meta name="description" content="Manage your ORBIT student profile and preferences.">
+
+  <title>My Profile — ORBIT</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="profile.css">
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="auth.js" defer></script>
+  <script src="profile.js" defer></script>
+</head>
+
+<body>
+
+  <div class="profile-background">
+    <span class="background-orb orb-one"></span>
+    <span class="background-orb orb-two"></span>
+  </div>
+
+  <header class="profile-header">
+    <a href="app.html" class="brand">
+      <span class="brand-symbol">✳</span>
+      <span>ORBIT</span>
+    </a>
+
+    <a href="app.html" class="back-link">
+      <span>←</span> Back to dashboard
+    </a>
+  </header>
+
+  <main class="profile-container">
+
+    <section class="profile-intro">
+      <div>
+        <span class="eyebrow">YOUR PERSONAL SPACE</span>
+        <h1>Make it yours.</h1>
+        <p>
+          Your details, your academic journey,
+          your ORBIT experience.
+        </p>
+      </div>
+
+      <div class="profile-decoration">✳</div>
+    </section>
+
+    <!-- PROFILE IDENTITY -->
+
+    <section class="identity-card">
+      <div class="identity-avatar" id="profileAvatar">
+        O
+      </div>
+
+      <div class="identity-details">
+        <h2 id="identityName">Loading profile...</h2>
+        <p id="identityInstitution">Your institution</p>
+        <span class="account-label">STUDENT ACCOUNT</span>
+      </div>
+    </section>
+
+    <form id="profileForm" novalidate>
+
+      <!-- PERSONAL INFORMATION -->
+
+      <section class="settings-card">
+
+        <div class="section-heading">
+          <div>
+            <span class="section-number">01</span>
+            <h2>Personal information</h2>
+            <p>How ORBIT identifies you.</p>
+          </div>
+        </div>
+
+        <div class="form-grid">
+
+          <div class="field-group">
+            <label for="displayName">Display name</label>
+            <input
+              type="text"
+              id="displayName"
+              maxlength="40"
+              placeholder="What should ORBIT call you?"
+              required
+            >
+          </div>
+
+          <div class="field-group">
+            <label for="fullName">Full name</label>
+            <input
+              type="text"
+              id="fullName"
+              maxlength="100"
+              placeholder="Your full name"
+              required
+            >
+          </div>
+
+          <div class="field-group full-width">
+            <label for="accountEmail">Account email</label>
+            <input
+              type="email"
+              id="accountEmail"
+              readonly
+              disabled
+            >
+            <small>Your account email cannot be changed here.</small>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ACADEMIC INFORMATION -->
+
+      <section class="settings-card">
+
+        <div class="section-heading">
+          <div>
+            <span class="section-number">02</span>
+            <h2>Academic information</h2>
+            <p>Keep your academic details up to date.</p>
+          </div>
+        </div>
+
+        <div class="form-grid">
+
+          <div class="field-group full-width">
+            <label for="institution">Institution</label>
+            <input
+              type="text"
+              id="institution"
+              maxlength="150"
+              placeholder="University, polytechnic or college"
+              required
+            >
+          </div>
+
+          <div class="field-group">
+            <label for="faculty">Faculty</label>
+            <input
+              type="text"
+              id="faculty"
+              maxlength="100"
+              placeholder="Your faculty"
+              required
+            >
+          </div>
+
+          <div class="field-group">
+            <label for="department">Department</label>
+            <input
+              type="text"
+              id="department"
+              maxlength="100"
+              placeholder="Your department"
+              required
+            >
+          </div>
+
+          <div class="field-group">
+            <label for="programme">Programme</label>
+            <input
+              type="text"
+              id="programme"
+              maxlength="120"
+              placeholder="e.g. Computer Science"
+              required
+            >
+          </div>
+
+          <div class="field-group">
+            <label for="studyLevel">Current level</label>
+            <select id="studyLevel" required>
+              <option value="">Select level</option>
+              <option value="100 Level">100 Level</option>
+              <option value="200 Level">200 Level</option>
+              <option value="300 Level">300 Level</option>
+              <option value="400 Level">400 Level</option>
+              <option value="500 Level">500 Level</option>
+              <option value="600 Level">600 Level</option>
+              <option value="ND1">ND1</option>
+              <option value="ND2">ND2</option>
+              <option value="HND1">HND1</option>
+              <option value="HND2">HND2</option>
+              <option value="NCE1">NCE1</option>
+              <option value="NCE2">NCE2</option>
+              <option value="NCE3">NCE3</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+
+          <div class="field-group">
+            <label for="academicSession">Academic session</label>
+            <input
+              type="text"
+              id="academicSession"
+              placeholder="e.g. 2026/2027"
+              required
+            >
+          </div>
+
+          <div class="field-group">
+            <label for="semester">Current semester</label>
+            <select id="semester" required>
+              <option value="">Select semester</option>
+              <option value="First Semester">First Semester</option>
+              <option value="Second Semester">Second Semester</option>
+              <option value="Third Semester">Third Semester</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- APPEARANCE -->
+
+      <section class="settings-card">
+
+        <div class="section-heading">
+          <div>
+            <span class="section-number">03</span>
+            <h2>Appearance</h2>
+            <p>Choose how ORBIT looks on your device.</p>
+          </div>
+        </div>
+
+        <div class="theme-options">
+
+          <label class="theme-option" data-theme-option="light">
+            <input
+              type="radio"
+              name="theme"
+              value="light"
+            >
+
+            <span class="theme-preview light-preview">
+              <span></span>
+              <span></span>
+              <span></span>
+            </span>
+
+            <span class="theme-label">
+              <strong>Light mode</strong>
+              <small>Clean and comfortable</small>
+            </span>
+          </label>
+
+          <label class="theme-option" data-theme-option="dark">
+            <input
+              type="radio"
+              name="theme"
+              value="dark"
+            >
+
+            <span class="theme-preview dark-preview">
+              <span></span>
+              <span></span>
+              <span></span>
+            </span>
+
+            <span class="theme-label">
+              <strong>Dark mode</strong>
+              <small>Easy on the eyes</small>
+            </span>
+          </label>
+
+        </div>
+      </section>
+
+      <!-- SAVE -->
+
+      <div id="profileMessage" class="form-message" role="status" aria-live="polite"></div>
+
+      <div class="save-area">
+        <a href="app.html" class="cancel-button">
+          Cancel
+        </a>
+
+        <button type="submit" id="saveProfileButton">
+          Save changes <span>→</span>
+        </button>
+      </div>
+
+    </form>
+
+    <!-- ACCOUNT ACTIONS -->
+
+    <section class="account-section">
+      <div>
+        <h2>Account</h2>
+        <p>Manage your ORBIT account session.</p>
+      </div>
+
+      <button type="button" id="signOutButton">
+        Sign out
+      </button>
+    </section>
+
+  </main>
+
+  <footer class="profile-footer">
+    <p>ORBIT · Your world. All in motion.</p>
+  </footer>
+
+</body>
+</html>
