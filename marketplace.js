@@ -61,7 +61,7 @@ document.addEventListener("DOMContentLoaded", () => {
     detailContent: $("#productDetailContent"),
     commentForm: $("#commentForm"),
     commentInput: $("#commentInput"),
-    commentList: $("#productCommentList"),
+    commentList: $("#commentList"),
     commentStatus: $("#commentStatus"),
 
     messages: $("#marketMessagesSection"),
@@ -617,6 +617,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     clearMessage(el.listingMessage);
     clear(el.imagePreview);
+    if (el.imagePreview) el.imagePreview.hidden = true;
 
     if (product) {
       el.title.value = product.title;
@@ -632,6 +633,7 @@ document.addEventListener("DOMContentLoaded", () => {
         image.src = publicImage(product.image_path);
         image.alt = "Current product image";
         el.imagePreview?.append(image);
+        if (el.imagePreview) el.imagePreview.hidden = false;
       }
     } else {
       if (el.publish) el.publish.textContent = "Publish listing";
@@ -649,12 +651,14 @@ document.addEventListener("DOMContentLoaded", () => {
 
     el.listingForm?.reset();
     clear(el.imagePreview);
+    if (el.imagePreview) el.imagePreview.hidden = true;
     clearMessage(el.listingMessage);
   }
 
   function handleImage(file) {
     selectedImageFile = file || null;
     clear(el.imagePreview);
+    if (el.imagePreview) el.imagePreview.hidden = true;
 
     if (!file) return;
 
@@ -676,6 +680,7 @@ document.addEventListener("DOMContentLoaded", () => {
     image.src = URL.createObjectURL(file);
     image.alt = "Selected product image";
     el.imagePreview?.append(image);
+    if (el.imagePreview) el.imagePreview.hidden = false;
     clearMessage(el.listingMessage);
   }
 
@@ -1613,6 +1618,7 @@ document.addEventListener("DOMContentLoaded", () => {
       selectedImageFile = null;
       el.imageInput.value = "";
       clear(el.imagePreview);
+      if (el.imagePreview) el.imagePreview.hidden = true;
     });
 
     // Product details
@@ -1662,7 +1668,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     // Refresh
-    $("#refreshProductsButton")?.addEventListener("click", loadProducts);
+    $("#refreshFeedButton")?.addEventListener("click", loadProducts);
 
     // Clear filters
     $("#clearFiltersButton")?.addEventListener("click", () => {
