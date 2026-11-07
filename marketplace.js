@@ -52,6 +52,7 @@ document.addEventListener("DOMContentLoaded", () => {
     description: $("#productDescription"),
     location: $("#productLocation"),
     imageInput: $("#productImage"),
+    imageArea: $(".image-upload-area"),
     imagePreview: $("#imagePreview"),
     removeImage: $("#removeImageButton"),
     listingMessage: $("#listingMessage"),
@@ -618,6 +619,7 @@ document.addEventListener("DOMContentLoaded", () => {
     clearMessage(el.listingMessage);
     clear(el.imagePreview);
     if (el.imagePreview) el.imagePreview.hidden = true;
+    el.imageArea?.classList.remove("has-image");
 
     if (product) {
       el.title.value = product.title;
@@ -634,6 +636,7 @@ document.addEventListener("DOMContentLoaded", () => {
         image.alt = "Current product image";
         el.imagePreview?.append(image);
         if (el.imagePreview) el.imagePreview.hidden = false;
+        el.imageArea?.classList.add("has-image");
       }
     } else {
       if (el.publish) el.publish.textContent = "Publish listing";
@@ -652,6 +655,7 @@ document.addEventListener("DOMContentLoaded", () => {
     el.listingForm?.reset();
     clear(el.imagePreview);
     if (el.imagePreview) el.imagePreview.hidden = true;
+    el.imageArea?.classList.remove("has-image");
     clearMessage(el.listingMessage);
   }
 
@@ -659,6 +663,7 @@ document.addEventListener("DOMContentLoaded", () => {
     selectedImageFile = file || null;
     clear(el.imagePreview);
     if (el.imagePreview) el.imagePreview.hidden = true;
+    el.imageArea?.classList.remove("has-image");
 
     if (!file) return;
 
@@ -681,6 +686,7 @@ document.addEventListener("DOMContentLoaded", () => {
     image.alt = "Selected product image";
     el.imagePreview?.append(image);
     if (el.imagePreview) el.imagePreview.hidden = false;
+    el.imageArea?.classList.add("has-image");
     clearMessage(el.listingMessage);
   }
 
@@ -786,6 +792,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (uploadedPath) payload.image_path = uploadedPath;
 
+      let savedProductId = editingProductId;
+
       if (editingProductId) {
         const { error } = await supabase
           .from("marketplace_products")
@@ -800,18 +808,21 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
       } else {
-        const { error } = await supabase
+        const { data: insertedProduct, error } = await supabase
           .from("marketplace_products")
           .insert({
             ...payload,
             seller_id: currentUser.id
-          });
+          })
+          .select("id")
+          .single();
 
         if (error) throw error;
+        savedProductId = insertedProduct.id;
       }
 
-      closeListing();
       await loadProducts();
+      showListingSuccess(savedProductId, Boolean(editingProductId));
 
     } catch (error) {
       console.error("Publishing product:", error);
@@ -829,6 +840,45 @@ document.addEventListener("DOMContentLoaded", () => {
         el.publish.textContent = buttonText;
       }
     }
+  }
+
+  function showListingSuccess(productId, wasEditing) {
+    if (!el.listingMessage) return;
+
+    message(
+      el.listingMessage,
+      wasEditing ? "Your listing has been updated." : "Your listing is live on ORBIT!",
+      "success"
+    );
+
+    const actions = make("div", "listing-success-actions");
+    const continueButton = make("button", "secondary-button", "Continue posting");
+    continueButton.type = "button";
+    continueButton.addEventListener("click", () => {
+      editingProductId = null;
+      selectedImageFile = null;
+      el.listingForm?.reset();
+      clear(el.imagePreview);
+      if (el.imagePreview) el.imagePreview.hidden = true;
+      el.imageArea?.classList.remove("has-image");
+      if (el.publish) el.publish.textContent = "Publish listing";
+      clearMessage(el.listingMessage);
+      el.title?.focus();
+      scrollTo(el.listing);
+    });
+
+    const editButton = make("button", "primary-button", "Edit this listing");
+    editButton.type = "button";
+    editButton.addEventListener("click", () => {
+      editingProductId = productId;
+      if (el.publish) el.publish.textContent = "Save changes";
+      clearMessage(el.listingMessage);
+      el.title?.focus();
+      scrollTo(el.listing);
+    });
+
+    actions.append(continueButton, editButton);
+    el.listingMessage.append(actions);
   }
 
   async function deleteProduct(product) {
@@ -1619,6 +1669,7 @@ document.addEventListener("DOMContentLoaded", () => {
       el.imageInput.value = "";
       clear(el.imagePreview);
       if (el.imagePreview) el.imagePreview.hidden = true;
+      el.imageArea?.classList.remove("has-image");
     });
 
     // Product details
