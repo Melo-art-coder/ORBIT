@@ -62,12 +62,13 @@ document.addEventListener("DOMContentLoaded", () => {
     detailContent: $("#productDetailContent"),
     commentForm: $("#commentForm"),
     commentInput: $("#commentInput"),
-    commentList: $("#commentList"),
+    commentList: $("#productCommentList"),
     commentStatus: $("#commentStatus"),
 
     messages: $("#marketMessagesSection"),
     conversationList: $("#conversationList"),
     conversationHeader: $("#conversationHeader"),
+    messageStatus: $("#messageStatus"),
     messageList: $("#messageList"),
     messageForm: $("#messageForm"),
     messageInput: $("#messageInput"),
@@ -1027,7 +1028,7 @@ document.addEventListener("DOMContentLoaded", () => {
         .from("marketplace_comments")
         .select("*")
         .eq("product_id", productId)
-        .order("created_at", { ascending: true });
+        .order("created_at", { ascending: false });
 
       if (error) throw error;
 
@@ -1286,45 +1287,56 @@ document.addEventListener("DOMContentLoaded", () => {
   async function loadSellerStats() {
     if (!el.sellerDashboard || !currentUser) return;
 
-    const ownProducts = products.filter(
-      product => product.seller_id === currentUser.id
-    );
+    try {
+      // Fetch every listing ID owned by this seller, not only the first
+      // 100 products currently shown in the public feed.
+      const { data: ownRows, error: productsError, count: productsCount } =
+        await supabase
+          .from("marketplace_products")
+          .select("id", { count: "exact" })
+          .eq("seller_id", currentUser.id);
 
-    const ids = ownProducts.map(product => product.id);
+      if (productsError) throw productsError;
 
-    let likeCount = 0;
-    let commentCount = 0;
+      const ownProductIds = (ownRows || []).map(row => row.id);
+      let likeCount = 0;
+      let commentCount = 0;
 
-    if (ids.length) {
-      const [likeResult, commentResult] = await Promise.all([
-        supabase
-          .from("marketplace_likes")
-          .select("id", { count: "exact", head: true })
-          .in("product_id", ids),
+      if (ownProductIds.length) {
+        const [likeResult, commentResult] = await Promise.all([
+          supabase
+            .from("marketplace_likes")
+            .select("id", { count: "exact", head: true })
+            .in("product_id", ownProductIds),
+          supabase
+            .from("marketplace_comments")
+            .select("id", { count: "exact", head: true })
+            .in("product_id", ownProductIds)
+        ]);
 
-        supabase
-          .from("marketplace_comments")
-          .select("id", { count: "exact", head: true })
-          .in("product_id", ids)
-      ]);
+        if (likeResult.error) throw likeResult.error;
+        if (commentResult.error) throw commentResult.error;
 
-      likeCount = likeResult.count || 0;
-      commentCount = commentResult.count || 0;
+        likeCount = likeResult.count || 0;
+        commentCount = commentResult.count || 0;
+      }
+
+      if (el.sellerProductCount) {
+        el.sellerProductCount.textContent = productsCount ?? ownProductIds.length;
+      }
+      if (el.sellerLikeCount) el.sellerLikeCount.textContent = likeCount;
+      if (el.sellerCommentCount) el.sellerCommentCount.textContent = commentCount;
+
+      el.sellerDashboard.hidden = false;
+    } catch (error) {
+      console.error("Marketplace seller statistics:", error);
+      // Keep the dashboard visible and make failed totals clear rather than
+      // silently presenting misleading zeroes.
+      if (el.sellerProductCount) el.sellerProductCount.textContent = "—";
+      if (el.sellerLikeCount) el.sellerLikeCount.textContent = "—";
+      if (el.sellerCommentCount) el.sellerCommentCount.textContent = "—";
+      el.sellerDashboard.hidden = false;
     }
-
-    if (el.sellerProductCount) {
-      el.sellerProductCount.textContent = ownProducts.length;
-    }
-
-    if (el.sellerLikeCount) {
-      el.sellerLikeCount.textContent = likeCount;
-    }
-
-    if (el.sellerCommentCount) {
-      el.sellerCommentCount.textContent = commentCount;
-    }
-
-    el.sellerDashboard.hidden = false;
   }
 
   // ==========================================
@@ -1343,6 +1355,8 @@ document.addEventListener("DOMContentLoaded", () => {
         .select("*")
         .eq("product_id", product.id)
         .eq("buyer_id", currentUser.id)
+        .order("created_at", { ascending: false })
+        .limit(1)
         .maybeSingle();
 
       if (findError) throw findError;
@@ -1368,7 +1382,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     } catch (error) {
       console.error("Starting conversation:", error);
-      alert("Couldn't start this conversation. Messaging may be blocked.");
+      alert(`Couldn't start this conversation: ${error.message || "Please try again."}`);
     }
   }
 
@@ -1376,6 +1390,11 @@ document.addEventListener("DOMContentLoaded", () => {
     if (!el.messages) return;
 
     el.messages.hidden = false;
+    if (el.messageInput) el.messageInput.disabled = true;
+    if (el.messageForm?.querySelector("button[type=submit]")) {
+      el.messageForm.querySelector("button[type=submit]").disabled = true;
+    }
+    if (el.messageStatus) el.messageStatus.textContent = "Choose a conversation to start messaging.";
     scrollTo(el.messages);
 
     await loadConversations(preferredId);
@@ -1406,6 +1425,10 @@ document.addEventListener("DOMContentLoaded", () => {
       el.conversationList.append(
         make("p", "", "Your conversations will appear here.")
       );
+      if (el.messageInput) el.messageInput.disabled = true;
+      const sendButton = el.messageForm?.querySelector("button[type=submit]");
+      if (sendButton) sendButton.disabled = true;
+      if (el.messageStatus) el.messageStatus.textContent = "No conversations yet. Open a listing and choose Message seller.";
       return;
     }
 
@@ -1482,11 +1505,19 @@ document.addEventListener("DOMContentLoaded", () => {
       if (el.conversationHeader) {
         el.conversationHeader.textContent = "Select a conversation";
       }
+      if (el.messageInput) el.messageInput.disabled = true;
+      const sendButton = el.messageForm?.querySelector("button[type=submit]");
+      if (sendButton) sendButton.disabled = true;
+      if (el.messageStatus) el.messageStatus.textContent = "Select a conversation to send a message.";
     }
   }
 
   async function selectConversation(conversation, product) {
     selectedConversation = conversation;
+    if (el.messageInput) el.messageInput.disabled = false;
+    const sendButton = el.messageForm?.querySelector("button[type=submit]");
+    if (sendButton) sendButton.disabled = false;
+    if (el.messageStatus) el.messageStatus.textContent = "Private conversation. Only participants can see these messages.";
 
     if (activeMessageChannel) {
       await supabase.removeChannel(activeMessageChannel);
@@ -1524,6 +1555,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (error) {
       console.error("Messages:", error);
+      if (el.messageStatus) el.messageStatus.textContent = `Couldn't load messages: ${error.message}`;
       return;
     }
 
@@ -1579,7 +1611,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     } catch (error) {
       console.error("Sending message:", error);
-      alert("Couldn't send your message.");
+      if (el.messageStatus) el.messageStatus.textContent = `Message not sent: ${error.message}`;
+      alert(`Couldn't send your message: ${error.message || "Please try again."}`);
     }
   }
 
