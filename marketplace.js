@@ -136,16 +136,20 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function formatDate(value) {
+    const date = new Date(value);
+    if (!value || Number.isNaN(date.getTime())) return "Recently";
     return new Intl.DateTimeFormat("en-NG", {
       dateStyle: "medium"
-    }).format(new Date(value));
+    }).format(date);
   }
 
   function formatTime(value) {
+    const date = new Date(value);
+    if (!value || Number.isNaN(date.getTime())) return "";
     return new Intl.DateTimeFormat("en-NG", {
       hour: "numeric",
       minute: "2-digit"
-    }).format(new Date(value));
+    }).format(date);
   }
 
   function scrollTo(node) {
@@ -250,6 +254,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (error) throw error;
 
       products = data || [];
+      await enrichSellerProfiles();
 
       await loadEngagement();
       await loadInstitutions();
@@ -260,8 +265,51 @@ document.addEventListener("DOMContentLoaded", () => {
 
     } catch (error) {
       console.error("Product loading:", error);
-      setStatus("Couldn't load products. Please try again.", "error");
+      setStatus(error.message || "Couldn't load products. Please try again.", "error");
     }
+  }
+
+  async function enrichSellerProfiles() {
+    const sellerIds = [...new Set(
+      products.map(product => product.seller_id).filter(Boolean)
+    )];
+
+    if (!sellerIds.length) return;
+
+    const { data, error } = await supabase
+      .from("student_profiles")
+      .select("user_id,display_name,full_name,university")
+      .in("user_id", sellerIds);
+
+    if (error) {
+      console.warn("Seller profile details could not be loaded:", error);
+      products = products.map(product => ({
+        ...product,
+        seller_display_name: product.seller_display_name || "ORBIT student",
+        seller_institution: product.seller_institution || "ORBIT marketplace"
+      }));
+      return;
+    }
+
+    const profiles = new Map(
+      (data || []).map(profile => [profile.user_id, profile])
+    );
+
+    products = products.map(product => {
+      const profile = profiles.get(product.seller_id);
+      return {
+        ...product,
+        seller_display_name:
+          product.seller_display_name ||
+          profile?.display_name ||
+          profile?.full_name ||
+          "ORBIT student",
+        seller_institution:
+          product.seller_institution ||
+          profile?.university ||
+          "ORBIT marketplace"
+      };
+    });
   }
 
   async function loadEngagement() {
@@ -344,11 +392,11 @@ document.addEventListener("DOMContentLoaded", () => {
       make(
         "p",
         "product-description",
-        product.description.length > 95
-          ? product.description.slice(0, 95) + "..."
-          : product.description
+        (product.description || "No description provided.").length > 95
+          ? (product.description || "No description provided.").slice(0, 95) + "..."
+          : (product.description || "No description provided.")
       ),
-      make("span", "product-location", `⌖ ${product.location}`)
+      make("span", "product-location", `⌖ ${product.location || "Location not specified"}`)
     );
 
     const seller = make(
@@ -841,11 +889,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const info = make("div", "product-detail-info");
 
     info.append(
-      make("span", "eyebrow", product.category),
+      make("span", "eyebrow", product.category || "Marketplace item"),
       make("h2", "", product.title),
       make("strong", "detail-price", formatMoney(product.price)),
-      make("p", "", product.description),
-      make("p", "", `⌖ ${product.location}`),
+      make("p", "", product.description || "No description provided."),
+      make("p", "", `⌖ ${product.location || "Location not specified"}`),
       make(
         "p",
         "",
@@ -929,6 +977,27 @@ document.addEventListener("DOMContentLoaded", () => {
       if (error) throw error;
 
       const comments = data || [];
+      const commenterIds = [...new Set(comments.map(item => item.user_id).filter(Boolean))];
+
+      if (commenterIds.length) {
+        const { data: profiles } = await supabase
+          .from("student_profiles")
+          .select("user_id,display_name,full_name")
+          .in("user_id", commenterIds);
+
+        const profileMap = new Map(
+          (profiles || []).map(profile => [profile.user_id, profile])
+        );
+
+        comments.forEach(comment => {
+          const profile = profileMap.get(comment.user_id);
+          comment.author_display_name =
+            comment.author_display_name ||
+            profile?.display_name ||
+            profile?.full_name ||
+            "ORBIT student";
+        });
+      }
 
       if (el.commentStatus) {
         el.commentStatus.textContent = comments.length

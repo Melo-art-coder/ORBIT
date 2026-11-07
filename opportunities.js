@@ -262,12 +262,16 @@ function setLocalSaved() {
       const { data, error } = await supabase
         .from(TABLE)
         .select("*")
-        .eq("status", "published")
         .order("created_at", { ascending: false });
 
       if (error) throw error;
 
-      opportunities = data || [];
+      // Public pages may contain published/active rows. If the table has
+      // no status value, keep the row visible rather than hiding valid data.
+      opportunities = (data || []).filter(item => {
+        const status = String(item.status || "").trim().toLowerCase();
+        return !status || ["published", "active", "open"].includes(status);
+      });
 
       updateStatistics();
       renderOpportunities();
@@ -276,7 +280,7 @@ function setLocalSaved() {
       console.error("Opportunity loading:", error);
 
       showError(
-        "We couldn't retrieve the opportunity board. Please refresh."
+        error.message || "We couldn't retrieve the opportunity board. Please refresh."
       );
     }
   }

@@ -100,7 +100,7 @@
       console.error("ORBIT Community initialisation:", error);
 
       feedStatus.textContent =
-        "We couldn't load the community. Please refresh and try again.";
+        error.message || "We couldn't load the community. Please refresh and try again.";
     }
   }
 
@@ -115,7 +115,7 @@
         setup_completed
       `)
       .eq("user_id", currentUser.id)
-      .single();
+      .maybeSingle();
 
     if (error) throw error;
 
@@ -151,15 +151,7 @@
 
     const { data, error } = await window.orbitSupabase
       .from("community_posts")
-      .select(`
-        id,
-        user_id,
-        author_display_name,
-        author_institution,
-        content,
-        created_at,
-        updated_at
-      `)
+      .select("*")
       .order("created_at", { ascending: false })
       .limit(100);
 
@@ -209,6 +201,12 @@
         .from("community_posts")
         .insert({
           user_id: currentUser.id,
+          author_display_name:
+            studentProfile.display_name ||
+            studentProfile.full_name ||
+            "ORBIT student",
+          author_institution:
+            studentProfile.university || "ORBIT student",
           content
         });
 
@@ -281,7 +279,7 @@
         post.content,
         post.author_display_name,
         post.author_institution
-      ].join(" ").toLowerCase();
+      ].filter(Boolean).join(" ").toLowerCase();
 
       return matchesFilter && searchableText.includes(searchTerm);
     });
@@ -328,10 +326,10 @@
     authorDetails.className = "post-author-details";
 
     const authorName = document.createElement("strong");
-    authorName.textContent = post.author_display_name;
+    authorName.textContent = post.author_display_name || "ORBIT student";
 
     const institution = document.createElement("span");
-    institution.textContent = post.author_institution;
+    institution.textContent = post.author_institution || "ORBIT student";
 
     const date = document.createElement("time");
     date.className = "post-date";
