@@ -2,6 +2,40 @@
 document.addEventListener("DOMContentLoaded", () => {
 
   // =====================================
+  // ORBIT FIRST-LAUNCH INTRO
+  // =====================================
+
+  const intro = document.querySelector("#orbitIntro");
+  const skipIntro = document.querySelector("#skipIntro");
+  const introKey = "orbitIntroSeen_v1";
+
+  if (intro) {
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    let finished = false;
+    const hasSeenIntro = (() => {
+      try { return localStorage.getItem(introKey) === "yes"; }
+      catch (_) { return false; }
+    })();
+
+    // First visit gets the full sequence; returning visitors get a brief brand reveal.
+    const introDuration = reducedMotion ? 650 : (hasSeenIntro ? 1050 : 4700);
+
+    function finishIntro() {
+      if (finished) return;
+      finished = true;
+      intro.classList.add("is-leaving");
+      try { localStorage.setItem(introKey, "yes"); } catch (_) {}
+      window.setTimeout(() => {
+        intro.classList.add("is-gone");
+        intro.setAttribute("aria-hidden", "true");
+      }, 950);
+    }
+
+    if (skipIntro) skipIntro.addEventListener("click", finishIntro);
+    window.setTimeout(finishIntro, introDuration);
+  }
+
+  // =====================================
   // ORBIT MOBILE NAVIGATION
   // =====================================
 
