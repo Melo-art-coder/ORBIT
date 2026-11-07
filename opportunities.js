@@ -1,380 +1,291 @@
 /* =========================================
-   ORBIT — OPPORTUNITIES
-   ========================================= */
+   ORBIT DISCOVER
+   Opportunity discovery and bookmarks
+========================================= */
 
 document.addEventListener("DOMContentLoaded", () => {
   "use strict";
 
-  // =========================================
-  // CONFIGURATION
-  // =========================================
+  const supabase = window.orbitSupabase;
 
   const TABLE = "opportunities";
-  const BOOKMARK_TABLE = "opportunity_bookmarks";
-  const STORAGE_KEY = "orbitSavedOpportunities";
-const getStorageKey = () =>
-  `${STORAGE_KEY}_${currentUser?.id || "guest"}`;
+  const BOOKMARKS = "opportunity_bookmarks";
 
-  const supabase =
-    window.orbitSupabase ||
-    window.supabaseClient ||
-    window.supabase;
+  const $ = id => document.getElementById(id);
+
+  const elements = {
+    grid: $("opportunityGrid"),
+    empty: $("emptyState"),
+
+    total: $("totalCount"),
+    saved: $("savedCount"),
+    deadline: $("deadlineCount"),
+    badge: $("savedBadge"),
+
+    search: $("searchInput"),
+    type: $("typeFilter"),
+    location: $("locationFilter"),
+    sort: $("sortFilter"),
+
+    resultsCount: $("resultsCount"),
+    resultsTitle: $("resultsTitle"),
+    resultsDescription: $("resultsDescription"),
+
+    modal: $("detailModal"),
+    modalContent: $("modalContent")
+  };
 
   let currentUser = null;
   let opportunities = [];
   let savedIds = new Set();
-  let activeCategory = "All";
+
+  let activeCategory = "";
   let showingSaved = false;
-  let searchQuery = "";
-  let currentOpportunity = null;
 
-  // =========================================
-  // ELEMENTS
-  // =========================================
-
-  const $ = selector => document.querySelector(selector);
-
-  const elements = {
-    grid: $("#opportunityGrid"),
-    search: $("#opportunitySearch"),
-    clearSearch: $("#clearSearch"),
-    type: $("#typeFilter"),
-    sort: $("#sortFilter"),
-
-    categoryList: $("#categoryList"),
-
-    total: $("#totalCount"),
-    saved: $("#savedCount"),
-    deadline: $("#deadlineCount"),
-    savedBadge: $("#savedBadge"),
-
-    resultsTitle: $("#resultsTitle"),
-    resultsDescription: $("#resultsDescription"),
-    resultsCount: $("#resultsCount"),
-
-    empty: $("#emptyState"),
-
-    savedToggle: $("#savedToggle"),
-    reset: $("#resetFilters"),
-
-    modal: $("#detailModal"),
-    modalContent: $("#modalContent"),
-    closeModal: $("#closeModal"),
-
-    sidebar: $("#sidebar"),
-    menu: $("#menuButton"),
-    theme: $("#themeButton"),
-
-    avatar: $("#userAvatar"),
-    explore: $("#exploreButton")
-  };
-
-  // =========================================
+  // =====================================
   // HELPERS
-  // =========================================
+  // =====================================
 
-  function createElement(tag, className = "", text = "") {
-    const element = document.createElement(tag);
-
-    if (className) {
-      element.className = className;
-    }
-
-    if (text !== "") {
-      element.textContent = text;
-    }
-
-    return element;
+  function escapeHTML(value) {
+    return String(value ?? "").replace(
+      /[&<>"']/g,
+      character => ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#039;"
+      })[character]
+    );
   }
 
-  function formatMoney(value) {
-    if (value === null || value === undefined || value === "") {
+  function daysRemaining(date) {
+    if (!date) return null;
+
+    const deadline = new Date(date + "T23:59:59");
+    const today = new Date();
+
+    today.setHours(0, 0, 0, 0);
+
+    return Math.ceil(
+      (deadline - today) / 86400000
+    );
+  }
+
+  function formatDate(date) {
+    if (!date) return "Not specified";
+
+    const parsed = new Date(date);
+
+    if (Number.isNaN(parsed.getTime())) {
       return "Not specified";
     }
 
-    const amount = Number(value);
-
-    if (!Number.isFinite(amount)) return String(value);
-
-    return new Intl.NumberFormat("en-NG", {
-      style: "currency",
-      currency: "NGN",
-      maximumFractionDigits: 0
-    }).format(amount);
-  }
-
-  function formatDate(value) {
-    if (!value) return "Not specified";
-
-    const date = new Date(value);
-
-    if (Number.isNaN(date.getTime())) {
-      return "Not specified";
-    }
-
-    return new Intl.DateTimeFormat("en-NG", {
+    return parsed.toLocaleDateString(undefined, {
       day: "numeric",
       month: "short",
       year: "numeric"
-    }).format(date);
+    });
   }
 
-  function daysRemaining(deadline) {
-    if (!deadline) return null;
-
-    const now = new Date();
-    const end = new Date(deadline);
-
-    if (Number.isNaN(end.getTime())) return null;
-
-    const today = new Date(
-      now.getFullYear(),
-      now.getMonth(),
-      now.getDate()
-    );
-
-    const lastDay = new Date(
-      end.getFullYear(),
-      end.getMonth(),
-      end.getDate()
-    );
-
-    return Math.ceil(
-      (lastDay - today) / (1000 * 60 * 60 * 24)
-    );
+  function normalise(value) {
+    return String(value || "").trim().toLowerCase();
   }
 
-  function getInitials(name) {
-    return String(name || "ORBIT")
-      .trim()
-      .split(/\s+/)
-      .slice(0, 2)
-      .map(word => word[0]?.toUpperCase() || "")
-      .join("");
+  function validOpportunity(item) {
+    const status = normalise(item.status);
+
+    const allowed = [
+      "",
+      "active",
+      "published",
+      "open"
+    ];
+
+    if (!allowed.includes(status)) {
+      return false;
+    }
+
+    const remaining = daysRemaining(item.deadline);
+
+    return remaining === null || remaining >= 0;
   }
 
-  function getLocalSaved() {
-  try {
-    return JSON.parse(
-      localStorage.getItem(getStorageKey()) || "[]"
-    );
-  } catch {
-    return [];
-  }
-}
-
-function setLocalSaved() {
-  localStorage.setItem(
-    getStorageKey(),
-    JSON.stringify([...savedIds])
-  );
-}
-
-  function showError(text) {
-    if (!elements.grid) return;
-
-    elements.grid.replaceChildren();
-
-    const box = createElement(
-      "div",
-      "empty-state"
-    );
-
-    box.append(
-      createElement("div", "empty-icon", "!"),
-      createElement("h3", "", "Something went wrong."),
-      createElement("p", "", text)
-    );
-
-    elements.grid.append(box);
+  function showMessage(message) {
+    elements.grid.innerHTML = `
+      <div class="loading-state">
+        <p>${escapeHTML(message)}</p>
+      </div>
+    `;
   }
 
-  // =========================================
-  // INITIALISATION
-  // =========================================
 
-  async function initialise() {
-    applyTheme();
+  // =====================================
+  // AUTHENTICATION
+  // =====================================
 
-    if (!supabase || typeof supabase.from !== "function") {
-      showError(
-        "ORBIT's Supabase client hasn't been connected to this page yet."
+  async function initialiseUser() {
+    if (!supabase) {
+      throw new Error(
+        "ORBIT authentication could not be loaded."
       );
+    }
+
+    const {
+      data,
+      error
+    } = await supabase.auth.getSession();
+
+    if (error) throw error;
+
+    currentUser = data.session?.user || null;
+
+    if (!currentUser) {
+      window.location.href = "index.html";
+      return false;
+    }
+
+    const avatar = $("userAvatar");
+
+    if (avatar) {
+      avatar.textContent = (
+        currentUser.user_metadata?.display_name ||
+        currentUser.user_metadata?.full_name ||
+        currentUser.email ||
+        "O"
+      ).charAt(0).toUpperCase();
+    }
+
+    return true;
+  }
+
+
+  // =====================================
+  // LOAD OPPORTUNITIES
+  // =====================================
+
+  async function loadOpportunities() {
+    showMessage("Finding opportunities...");
+
+    const {
+      data,
+      error
+    } = await supabase
+      .from(TABLE)
+      .select("*")
+      .order("created_at", {
+        ascending: false
+      });
+
+    if (error) {
+      console.error("Discover loading error:", error);
+
+      showMessage(
+        "Unable to load opportunities. Please refresh."
+      );
+
       return;
     }
 
-    try {
-      const { data, error } = await supabase.auth.getSession();
+    opportunities = (data || []).filter(
+      validOpportunity
+    );
 
-      if (error) throw error;
-
-      currentUser = data.session?.user || null;
-
-      if (!currentUser) {
-        window.location.href = "login.html";
-        return;
-      }
-
-      if (elements.avatar) {
-        const { data: profile } = await supabase
-          .from("student_profiles")
-          .select("display_name, full_name")
-          .eq("user_id", currentUser.id)
-          .maybeSingle();
-
-        elements.avatar.textContent = getInitials(
-          profile?.display_name ||
-          profile?.full_name ||
-          currentUser.email
-        );
-      }
-
-      await loadSaved();
-      await loadOpportunities();
-
-      setupEvents();
-
-    } catch (error) {
-      console.error("ORBIT Opportunities:", error);
-
-      showError(
-        error.message || "Unable to load opportunities."
-      );
-    }
-  }
-
-  // =========================================
-  // LOAD OPPORTUNITIES
-  // =========================================
-
-  async function loadOpportunities() {
-    if (elements.grid) {
-      elements.grid.replaceChildren(
-        createElement(
-          "div",
-          "loading-state",
-          "Loading opportunities..."
-        )
-      );
-    }
-
-    try {
-      const { data, error } = await supabase
-        .from(TABLE)
-        .select("*")
-        .order("created_at", { ascending: false });
-
-      if (error) throw error;
-
-      // Public pages may contain published/active rows. If the table has
-      // no status value, keep the row visible rather than hiding valid data.
-      opportunities = (data || []).filter(item => {
-        const status = String(item.status || "").trim().toLowerCase();
-        return !status || ["published", "active", "open"].includes(status);
-      });
-
-      updateStatistics();
-      renderOpportunities();
-
-    } catch (error) {
-      console.error("Opportunity loading:", error);
-
-      showError(
-        error.message || "We couldn't retrieve the opportunity board. Please refresh."
-      );
-    }
-  }
-
-  // =========================================
-  // LOAD SAVED OPPORTUNITIES
-  // =========================================
-
-  async function loadSaved() {
-    const localSaved = getLocalSaved();
-
-    savedIds = new Set(localSaved);
-
-    try {
-      const { data, error } = await supabase
-        .from(BOOKMARK_TABLE)
-        .select("opportunity_id")
-        .eq("user_id", currentUser.id);
-
-      if (error) throw error;
-
-      savedIds = new Set(
-        (data || []).map(item => item.opportunity_id)
-      );
-
-      setLocalSaved();
-
-    } catch (error) {
-      console.warn(
-        "Using locally saved bookmarks:",
-        error.message
-      );
-    }
+    await loadBookmarks();
 
     updateStatistics();
+    renderOpportunities();
   }
 
-  // =========================================
+
+  // =====================================
+  // LOAD BOOKMARKS
+  // =====================================
+
+  async function loadBookmarks() {
+    const {
+      data,
+      error
+    } = await supabase
+      .from(BOOKMARKS)
+      .select("opportunity_id")
+      .eq("user_id", currentUser.id);
+
+    if (error) {
+      console.error("Bookmark loading error:", error);
+      savedIds = new Set();
+      return;
+    }
+
+    savedIds = new Set(
+      (data || []).map(item => item.opportunity_id)
+    );
+  }
+
+
+  // =====================================
   // STATISTICS
-  // =========================================
+  // =====================================
 
   function updateStatistics() {
-    if (elements.total) {
-      elements.total.textContent = opportunities.length;
-    }
-
-    if (elements.saved) {
-      elements.saved.textContent = savedIds.size;
-    }
-
-    if (elements.savedBadge) {
-      elements.savedBadge.textContent = savedIds.size;
-    }
-
     const closingSoon = opportunities.filter(item => {
-      const remaining = daysRemaining(item.deadline);
+      const days = daysRemaining(item.deadline);
 
-      return remaining !== null &&
-        remaining >= 0 &&
-        remaining <= 7;
+      return days !== null && days >= 0 && days <= 7;
     }).length;
 
-    if (elements.deadline) {
-      elements.deadline.textContent = closingSoon;
-    }
+    elements.total.textContent = opportunities.length;
+    elements.saved.textContent = savedIds.size;
+    elements.badge.textContent = savedIds.size;
+    elements.deadline.textContent = closingSoon;
   }
 
-  // =========================================
+
+  // =====================================
   // FILTERING
-  // =========================================
+  // =====================================
 
   function getFilteredOpportunities() {
-    let result = [...opportunities];
+    let results = [...opportunities];
+
+    const search = normalise(
+      elements.search.value
+    );
+
+    const type = elements.type.value;
+    const location = normalise(elements.location.value);
+    const sort = elements.sort.value;
 
     if (showingSaved) {
-      result = result.filter(item => savedIds.has(item.id));
-    }
-
-    if (activeCategory !== "All") {
-      result = result.filter(
-        item => item.type === activeCategory
+      results = results.filter(
+        item => savedIds.has(item.id)
       );
     }
 
-    const selectedType = elements.type?.value;
-
-    if (selectedType) {
-      result = result.filter(
-        item => item.type === selectedType
+    if (activeCategory) {
+      results = results.filter(
+        item => normalise(item.type) === normalise(activeCategory)
       );
     }
 
-    if (searchQuery) {
-      result = result.filter(item => {
+    if (type) {
+      results = results.filter(
+        item => normalise(item.type) === normalise(type)
+      );
+    }
+
+    if (location) {
+      results = results.filter(item => {
+        const text = normalise(item.location);
+
+        return text.includes(location) ||
+          (location === "remote" &&
+           normalise(item.mode).includes("remote"));
+      });
+    }
+
+    if (search) {
+      results = results.filter(item => {
         const searchable = [
           item.title,
           item.organization,
@@ -383,24 +294,15 @@ function setLocalSaved() {
           item.location,
           item.mode,
           item.eligibility,
-          item.category
+          item.funding
         ].join(" ").toLowerCase();
 
-        return searchable.includes(searchQuery);
+        return searchable.includes(search);
       });
     }
 
-    const sort = elements.sort?.value || "newest";
-
-    if (sort === "newest") {
-      result.sort(
-        (a, b) =>
-          new Date(b.created_at) - new Date(a.created_at)
-      );
-    }
-
     if (sort === "deadline") {
-      result.sort((a, b) => {
+      results.sort((a, b) => {
         const first = a.deadline
           ? new Date(a.deadline).getTime()
           : Infinity;
@@ -414,610 +316,447 @@ function setLocalSaved() {
     }
 
     if (sort === "alphabetical") {
-      result.sort((a, b) =>
-        a.title.localeCompare(b.title)
-      );
-    }
-
-    return result;
-  }
-
-  // =========================================
-  // CREATE OPPORTUNITY CARD
-  // =========================================
-
-  function createCard(item) {
-    const card = createElement(
-      "article",
-      "opportunity-card"
-    );
-
-    const top = createElement("div", "card-topline");
-
-    top.append(
-      createElement(
-        "span",
-        "opportunity-type",
-        item.type || "Opportunity"
-      )
-    );
-
-    const saveButton = createElement(
-      "button",
-      `save-button ${savedIds.has(item.id) ? "saved" : ""}`,
-      savedIds.has(item.id) ? "♥" : "♡"
-    );
-
-    saveButton.type = "button";
-    saveButton.title = savedIds.has(item.id)
-      ? "Remove bookmark"
-      : "Save opportunity";
-
-    saveButton.setAttribute(
-      "aria-label",
-      saveButton.title
-    );
-
-    saveButton.addEventListener("click", event => {
-      event.stopPropagation();
-      toggleSaved(item);
-    });
-
-    top.append(saveButton);
-
-    card.append(top);
-
-    card.append(
-      createElement(
-        "div",
-        "organization-name",
-        item.organization || "Organization not specified"
-      ),
-      createElement("h3", "", item.title),
-      createElement(
-        "p",
-        "card-description",
-        item.description || "No description available."
-      )
-    );
-
-    const meta = createElement("div", "card-meta");
-
-    meta.append(
-      createElement(
-        "span",
-        "",
-        `⌖ ${item.location || "Location not specified"}`
-      ),
-      createElement(
-        "span",
-        "",
-        `◷ ${formatDate(item.deadline)}`
-      )
-    );
-
-    const remaining = daysRemaining(item.deadline);
-
-    if (remaining !== null && remaining >= 0 && remaining <= 7) {
-      meta.append(
-        createElement(
-          "span",
-          "deadline-warning",
-          remaining === 0
-            ? "Closes today"
-            : `Closes in ${remaining} days`
+      results.sort((a, b) =>
+        String(a.title || "").localeCompare(
+          String(b.title || "")
         )
       );
     }
 
-    card.append(meta);
+    if (sort === "newest") {
+      results.sort((a, b) =>
+        new Date(b.created_at || 0) -
+        new Date(a.created_at || 0)
+      );
+    }
 
-    const footer = createElement("div", "card-footer");
+    return results;
+  }
 
-    footer.append(
-      createElement(
-        "small",
-        "",
-        item.mode || "Details available"
-      )
-    );
 
-    const viewButton = createElement(
-      "button",
-      "view-opportunity",
-      "View details →"
-    );
+  // =====================================
+  // RENDER CARDS
+  // =====================================
 
-    viewButton.type = "button";
+  function renderOpportunities() {
+    const results = getFilteredOpportunities();
 
-    viewButton.addEventListener("click", () => {
-      openDetails(item);
+    elements.grid.innerHTML = "";
+
+    elements.resultsCount.textContent =
+      `${results.length} results`;
+
+    elements.resultsTitle.textContent =
+      showingSaved
+        ? "Your saved opportunities"
+        : "Explore opportunities";
+
+    elements.resultsDescription.textContent =
+      showingSaved
+        ? "Opportunities you've bookmarked."
+        : "Discover something worth applying for.";
+
+    elements.empty.hidden = results.length !== 0;
+
+    if (!results.length) return;
+
+    results.forEach(item => {
+      elements.grid.appendChild(
+        createOpportunityCard(item)
+      );
     });
+  }
 
-    footer.append(viewButton);
-    card.append(footer);
 
-    card.addEventListener("click", event => {
-      if (event.target.closest("button")) return;
-      openDetails(item);
-    });
+  function createOpportunityCard(item) {
+    const card = document.createElement("article");
+
+    card.className = "opportunity-card";
+
+    const saved = savedIds.has(item.id);
+    const remaining = daysRemaining(item.deadline);
+
+    const deadlineLabel =
+      remaining === null
+        ? "Deadline not specified"
+        : remaining === 0
+          ? "Closes today"
+          : remaining === 1
+            ? "1 day left"
+            : `${remaining} days left`;
+
+    const deadlineClass =
+      remaining !== null && remaining <= 7
+        ? "deadline-warning"
+        : "";
+
+    card.innerHTML = `
+      <div class="card-top">
+
+        <span class="type-label">
+          ${escapeHTML(item.type || "Opportunity")}
+        </span>
+
+        <button
+          class="bookmark-button ${saved ? "saved" : ""}"
+          aria-label="Save opportunity"
+          data-bookmark="${escapeHTML(item.id)}"
+        >
+          ${saved ? "♥" : "♡"}
+        </button>
+
+      </div>
+
+      <h3>${escapeHTML(item.title)}</h3>
+
+      <div class="organization">
+        ${escapeHTML(item.organization || "Organization not specified")}
+      </div>
+
+      <p class="card-description">
+        ${escapeHTML(
+          String(item.description || "No description provided.")
+            .slice(0, 175)
+        )}${String(item.description || "").length > 175 ? "..." : ""}
+      </p>
+
+      <div class="card-meta">
+
+        <span class="meta-pill">
+          ◉ ${escapeHTML(item.location || "Location not specified")}
+        </span>
+
+        <span class="meta-pill">
+          ◷ ${escapeHTML(item.mode || "Mode not specified")}
+        </span>
+
+        <span class="meta-pill ${deadlineClass}">
+          ${escapeHTML(deadlineLabel)}
+        </span>
+
+      </div>
+
+      <div class="card-footer">
+
+        <span class="card-source">
+          ${item.source_url ? "External source available" : "ORBIT listing"}
+        </span>
+
+        <button
+          class="view-button"
+          data-view="${escapeHTML(item.id)}"
+        >
+          View details ↗
+        </button>
+
+      </div>
+    `;
 
     return card;
   }
 
-  // =========================================
-  // RENDER OPPORTUNITIES
-  // =========================================
 
-  function renderOpportunities() {
-    if (!elements.grid) return;
-
-    const filtered = getFilteredOpportunities();
-
-    elements.grid.replaceChildren();
-
-    if (elements.resultsTitle) {
-      elements.resultsTitle.textContent = showingSaved
-        ? "Your saved opportunities"
-        : "Discover opportunities";
-    }
-
-    if (elements.resultsDescription) {
-      elements.resultsDescription.textContent = showingSaved
-        ? "Opportunities you've bookmarked."
-        : "Explore what's available.";
-    }
-
-    if (elements.resultsCount) {
-      elements.resultsCount.textContent =
-        `${filtered.length} results`;
-    }
-
-    if (elements.empty) {
-      elements.empty.hidden = filtered.length > 0;
-    }
-
-    filtered.forEach((item, index) => {
-      const card = createCard(item);
-
-      card.style.animationDelay = `${Math.min(index * 45, 300)}ms`;
-
-      elements.grid.append(card);
-    });
-
-    updateStatistics();
-  }
-
-  // =========================================
-  // SAVE / UNSAVE
-  // =========================================
-
-  async function toggleSaved(item) {
-    const alreadySaved = savedIds.has(item.id);
-
-    if (alreadySaved) {
-      savedIds.delete(item.id);
-    } else {
-      savedIds.add(item.id);
-    }
-
-    setLocalSaved();
-    updateStatistics();
-    renderOpportunities();
-
-    try {
-      if (alreadySaved) {
-        const { error } = await supabase
-          .from(BOOKMARK_TABLE)
-          .delete()
-          .eq("user_id", currentUser.id)
-          .eq("opportunity_id", item.id);
-
-        if (error) throw error;
-
-      } else {
-        const { error } = await supabase
-          .from(BOOKMARK_TABLE)
-          .insert({
-            user_id: currentUser.id,
-            opportunity_id: item.id
-          });
-
-        if (error) throw error;
-      }
-
-    } catch (error) {
-      console.error("Bookmark update:", error);
-
-      // Restore the previous state if saving failed.
-      if (alreadySaved) {
-        savedIds.add(item.id);
-      } else {
-        savedIds.delete(item.id);
-      }
-
-      setLocalSaved();
-      renderOpportunities();
-
-      alert(
-        "Your bookmark couldn't sync with your account. Please try again."
-      );
-    }
-  }
-
-  // =========================================
+  // =====================================
   // OPPORTUNITY DETAILS
-  // =========================================
+  // =====================================
 
-  function openDetails(item) {
-    currentOpportunity = item;
-
-    const content = elements.modalContent;
-
-    if (!content) return;
-
-    content.replaceChildren();
-
-    content.append(
-      createElement(
-        "span",
-        "opportunity-type",
-        item.type || "Opportunity"
-      ),
-      createElement(
-        "div",
-        "organization-name",
-        item.organization || "Organization not specified"
-      ),
-      createElement("h2", "", item.title),
-      createElement(
-        "p",
-        "",
-        item.description || "No description available."
-      )
+  function openDetails(id) {
+    const item = opportunities.find(
+      opportunity => opportunity.id === id
     );
 
-    const metadata = createElement("div", "detail-meta");
+    if (!item) return;
 
-    const fields = [
-      ["Organization", item.organization],
-      ["Location", item.location],
-      ["Opportunity type", item.type],
-      ["Format", item.mode],
-      ["Deadline", formatDate(item.deadline)],
-      [
-        "Funding / reward",
-        item.funding || "Not specified"
-      ]
-    ];
+    elements.modalContent.innerHTML = `
+      <div class="modal-content">
 
-    fields.forEach(([label, value]) => {
-      const wrapper = createElement("div");
+        <span class="type-label">
+          ${escapeHTML(item.type || "Opportunity")}
+        </span>
 
-      wrapper.append(
-        createElement("span", "", label),
-        createElement(
-          "strong",
-          "",
-          value || "Not specified"
-        )
-      );
+        <h2>${escapeHTML(item.title)}</h2>
 
-      metadata.append(wrapper);
-    });
+        <p>
+          ${escapeHTML(item.organization || "Organization not specified")}
+        </p>
 
-    content.append(metadata);
+        <h4>Description</h4>
+        <p>${escapeHTML(item.description || "No description provided.")}</p>
 
-    if (item.eligibility) {
-      content.append(
-        createElement("h4", "", "Who can apply?"),
-        createElement("p", "", item.eligibility)
-      );
-    }
+        <h4>Location</h4>
+        <p>${escapeHTML(item.location || "Not specified")}</p>
 
-    if (item.requirements) {
-      content.append(
-        createElement("h4", "", "Requirements"),
-        createElement("p", "", item.requirements)
-      );
-    }
+        <h4>Mode</h4>
+        <p>${escapeHTML(item.mode || "Not specified")}</p>
 
-    if (item.source_url && isSafeUrl(item.source_url)) {
-      const source = createElement(
-        "a",
-        "apply-button",
-        "View official source ↗"
-      );
+        <h4>Funding</h4>
+        <p>${escapeHTML(item.funding || "Not specified")}</p>
 
-      source.href = item.source_url;
-      source.target = "_blank";
-      source.rel = "noopener noreferrer";
+        <h4>Eligibility</h4>
+        <p>${escapeHTML(item.eligibility || "Not specified")}</p>
 
-      content.append(source);
-    }
+        <h4>Requirements</h4>
+        <p>${escapeHTML(item.requirements || "Not specified")}</p>
 
-    const applyUrl = item.apply_url;
+        <h4>Application deadline</h4>
+        <p>${escapeHTML(formatDate(item.deadline))}</p>
 
-    if (applyUrl && isSafeUrl(applyUrl)) {
-      const apply = createElement(
-        "a",
-        "apply-button",
-        "Apply now ↗"
-      );
+        ${
+          item.source_url
+            ? `<p>
+                <a href="${safeExternalURL(item.source_url)}"
+                   target="_blank"
+                   rel="noopener noreferrer">
+                  View original source ↗
+                </a>
+              </p>`
+            : ""
+        }
 
-      apply.href = applyUrl;
-      apply.target = "_blank";
-      apply.rel = "noopener noreferrer";
+        ${
+          item.apply_url
+            ? `<a
+                class="modal-apply"
+                href="${safeExternalURL(item.apply_url)}"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Apply now ↗
+              </a>`
+            : `<p>Application link not available.</p>`
+        }
 
-      content.append(apply);
-    } else {
-      content.append(
-        createElement(
-          "p",
-          "",
-          "An application link has not been provided. Visit the official source for details."
-        )
-      );
-    }
-
-    const save = createElement(
-      "button",
-      "saved-toggle",
-      savedIds.has(item.id)
-        ? "♥ Remove from saved"
-        : "♡ Save opportunity"
-    );
-
-    save.type = "button";
-
-    save.style.marginTop = "15px";
-
-    save.addEventListener("click", () => {
-      toggleSaved(item);
-      openDetails(item);
-    });
-
-    content.append(save);
+      </div>
+    `;
 
     elements.modal.hidden = false;
-    document.body.style.overflow = "hidden";
   }
 
-  function isSafeUrl(value) {
+
+  function safeExternalURL(value) {
     try {
       const url = new URL(value);
 
-      return (
-        url.protocol === "https:" ||
-        url.protocol === "http:"
-      );
+      if (!["https:", "http:"].includes(url.protocol)) {
+        return "#";
+      }
+
+      return escapeHTML(url.href);
     } catch {
-      return false;
+      return "#";
     }
   }
 
-  function closeDetails() {
-    if (!elements.modal) return;
 
-    elements.modal.hidden = true;
-    document.body.style.overflow = "";
+  // =====================================
+  // BOOKMARKS
+  // =====================================
 
-    currentOpportunity = null;
-  }
+  async function toggleBookmark(id) {
+    if (!currentUser) return;
 
-  // =========================================
-  // SEARCH
-  // =========================================
+    const alreadySaved = savedIds.has(id);
 
-  function handleSearch() {
-    searchQuery = elements.search.value
-      .trim()
-      .toLowerCase();
+    try {
+      if (alreadySaved) {
+        const { error } = await supabase
+          .from(BOOKMARKS)
+          .delete()
+          .eq("user_id", currentUser.id)
+          .eq("opportunity_id", id);
 
-    renderOpportunities();
-  }
+        if (error) throw error;
 
-  // =========================================
-  // CATEGORY FILTERS
-  // =========================================
+        savedIds.delete(id);
 
-  function setupCategories() {
-    if (!elements.categoryList) return;
-
-    elements.categoryList.addEventListener(
-      "click",
-      event => {
-        const button = event.target.closest(
-          "[data-category]"
-        );
-
-        if (!button) return;
-
-        activeCategory = button.dataset.category || "All";
-
-        elements.categoryList
-          .querySelectorAll("[data-category]")
-          .forEach(item => {
-            item.classList.toggle(
-              "active",
-              item === button
-            );
+      } else {
+        const { error } = await supabase
+          .from(BOOKMARKS)
+          .insert({
+            user_id: currentUser.id,
+            opportunity_id: id
           });
 
-        renderOpportunities();
+        if (error) throw error;
+
+        savedIds.add(id);
       }
+
+      updateStatistics();
+      renderOpportunities();
+
+    } catch (error) {
+      console.error("Bookmark error:", error);
+
+      alert(
+        "Unable to update your saved opportunities. Please try again."
+      );
+    }
+  }
+
+
+  // =====================================
+  // EVENTS
+  // =====================================
+
+  elements.search.addEventListener(
+    "input",
+    renderOpportunities
+  );
+
+  elements.type.addEventListener(
+    "change",
+    () => {
+      activeCategory = "";
+      updateCategoryButtons();
+      renderOpportunities();
+    }
+  );
+
+  elements.location.addEventListener(
+    "change",
+    renderOpportunities
+  );
+
+  elements.sort.addEventListener(
+    "change",
+    renderOpportunities
+  );
+
+  $("clearSearch").addEventListener("click", () => {
+    elements.search.value = "";
+    renderOpportunities();
+  });
+
+  $("categoryList").addEventListener("click", event => {
+    const button = event.target.closest("[data-category]");
+
+    if (!button) return;
+
+    activeCategory = button.dataset.category;
+
+    elements.type.value = "";
+
+    updateCategoryButtons();
+    renderOpportunities();
+  });
+
+
+  function updateCategoryButtons() {
+    document.querySelectorAll(".category-chip").forEach(button => {
+      button.classList.toggle(
+        "active",
+        button.dataset.category === activeCategory
+      );
+    });
+  }
+
+
+  elements.grid.addEventListener("click", event => {
+    const bookmark = event.target.closest("[data-bookmark]");
+
+    if (bookmark) {
+      toggleBookmark(bookmark.dataset.bookmark);
+      return;
+    }
+
+    const view = event.target.closest("[data-view]");
+
+    if (view) {
+      openDetails(view.dataset.view);
+    }
+  });
+
+
+  $("savedToggle").addEventListener("click", () => {
+    showingSaved = !showingSaved;
+
+    $("savedToggle").classList.toggle(
+      "active",
+      showingSaved
     );
-  }
 
-  // =========================================
-  // THEME
-  // =========================================
+    renderOpportunities();
+  });
 
-  function applyTheme() {
-    const savedTheme = localStorage.getItem("orbitTheme");
 
-    const theme = savedTheme === "dark"
-      ? "dark"
-      : "light";
+  $("resetFilters").addEventListener("click", () => {
+    elements.search.value = "";
+    elements.type.value = "";
+    elements.location.value = "";
+    elements.sort.value = "newest";
 
-    document.documentElement.dataset.theme = theme;
-  }
-
-  function toggleTheme() {
-    const current =
-      document.documentElement.dataset.theme || "light";
-
-    const next = current === "dark"
-      ? "light"
-      : "dark";
-
-    document.documentElement.dataset.theme = next;
-
-    localStorage.setItem("orbitTheme", next);
-  }
-
-  // =========================================
-  // RESET FILTERS
-  // =========================================
-
-  function resetFilters() {
-    activeCategory = "All";
+    activeCategory = "";
     showingSaved = false;
-    searchQuery = "";
 
-    if (elements.search) {
-      elements.search.value = "";
-    }
-
-    if (elements.type) {
-      elements.type.value = "";
-    }
-
-    if (elements.sort) {
-      elements.sort.value = "newest";
-    }
-
-    elements.categoryList
-      ?.querySelectorAll("[data-category]")
-      .forEach(button => {
-        button.classList.toggle(
-          "active",
-          button.dataset.category === "All"
-        );
-      });
-
+    updateCategoryButtons();
     renderOpportunities();
-  }
+  });
 
-  // =========================================
-  // EVENT LISTENERS
-  // =========================================
 
-  function setupEvents() {
-
-    elements.search?.addEventListener(
-      "input",
-      handleSearch
-    );
-
-    elements.clearSearch?.addEventListener(
-      "click",
-      () => {
-        elements.search.value = "";
-        handleSearch();
-        elements.search.focus();
-      }
-    );
-
-    elements.type?.addEventListener(
-      "change",
-      renderOpportunities
-    );
-
-    elements.sort?.addEventListener(
-      "change",
-      renderOpportunities
-    );
-
-    elements.savedToggle?.addEventListener(
-      "click",
-      () => {
-        showingSaved = !showingSaved;
-
-        elements.savedToggle.classList.toggle(
-          "active",
-          showingSaved
-        );
-
-        renderOpportunities();
-      }
-    );
-
-    elements.reset?.addEventListener(
-      "click",
-      resetFilters
-    );
-
-    elements.closeModal?.addEventListener(
-      "click",
-      closeDetails
-    );
-
-    elements.modal?.addEventListener(
-      "click",
-      event => {
-        if (event.target === elements.modal) {
-          closeDetails();
-        }
-      }
-    );
-
-    document.addEventListener("keydown", event => {
-      if (event.key === "Escape") {
-        closeDetails();
-      }
+  $("exploreButton").addEventListener("click", () => {
+    $("discoverSection").scrollIntoView({
+      behavior: "smooth"
     });
+  });
 
-    elements.menu?.addEventListener(
-      "click",
-      () => {
-        elements.sidebar?.classList.toggle("open");
-      }
+
+  $("closeModal").addEventListener("click", () => {
+    elements.modal.hidden = true;
+  });
+
+  elements.modal.addEventListener("click", event => {
+    if (event.target === elements.modal) {
+      elements.modal.hidden = true;
+    }
+  });
+
+
+  $("menuButton").addEventListener("click", () => {
+    $("sidebar").classList.toggle("open");
+  });
+
+
+  $("themeButton").addEventListener("click", () => {
+    document.body.classList.toggle("dark");
+
+    localStorage.setItem(
+      "orbitDiscoverTheme",
+      document.body.classList.contains("dark")
+        ? "dark"
+        : "light"
     );
+  });
 
-    document.addEventListener("click", event => {
-      if (
-        window.innerWidth <= 900 &&
-        elements.sidebar?.classList.contains("open") &&
-        !elements.sidebar.contains(event.target) &&
-        !elements.menu?.contains(event.target)
-      ) {
-        elements.sidebar.classList.remove("open");
+
+  // =====================================
+  // INITIALISE
+  // =====================================
+
+  async function initialise() {
+    try {
+      const savedTheme = localStorage.getItem(
+        "orbitDiscoverTheme"
+      );
+
+      if (savedTheme === "dark") {
+        document.body.classList.add("dark");
       }
-    });
 
-    elements.theme?.addEventListener(
-      "click",
-      toggleTheme
-    );
+      const authenticated = await initialiseUser();
 
-    elements.explore?.addEventListener(
-      "click",
-      () => {
-        document
-          .querySelector("#discovery")
-          ?.scrollIntoView({
-            behavior: "smooth"
-          });
-      }
-    );
+      if (!authenticated) return;
 
-    setupCategories();
+      await loadOpportunities();
+
+    } catch (error) {
+      console.error("ORBIT Discover:", error);
+
+      showMessage(
+        error.message || "Something went wrong."
+      );
+    }
   }
-
-  // =========================================
-  // START ORBIT OPPORTUNITIES
-  // =========================================
 
   initialise();
 
