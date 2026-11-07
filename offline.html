@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+
+  <meta name="viewport"
+        content="width=device-width, initial-scale=1.0">
+
+  <meta name="theme-color" content="#FAF7ED">
+
+  <title>ORBIT — Offline</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      background: #faf7ed;
+      color: #29241f;
+      font-family: Arial, sans-serif;
+    }
+
+    main {
+      max-width: 450px;
+      padding: 40px 25px;
+      text-align: center;
+      background: #fffdf8;
+      border-radius: 22px;
+      border: 1px solid #e9e1d4;
+    }
+
+    h1 {
+      font-family: Georgia, serif;
+      font-size: 34px;
+      font-weight: 500;
+    }
+
+    p {
+      color: #776f67;
+      line-height: 1.7;
+    }
+
+    button {
+      border: none;
+      padding: 14px 24px;
+      border-radius: 30px;
+      background: #35103a;
+      color: white;
+      cursor: pointer;
+    }
+  </style>
+</head>
+
+<body>
+
+  <main>
+    <h1>You've drifted offline.</h1>
+
+    <p>
+      Your universe is still here.
+      Reconnect to the internet to access
+      your account and live ORBIT features.
+    </p>
+
+    <button onclick="location.reload()">
+      Try again
+    </button>
+  </main>
+
+</body>
+</html>
