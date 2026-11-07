@@ -17,8 +17,8 @@ document.addEventListener("DOMContentLoaded", () => {
       catch (_) { return false; }
     })();
 
-    // First visit gets the full sequence; returning visitors get a brief brand reveal.
-    const introDuration = reducedMotion ? 650 : (hasSeenIntro ? 1050 : 4700);
+    // Give first-time visitors room to enjoy the full solar-system reveal. Returning visitors get a shorter brand moment.
+    const introDuration = reducedMotion ? 650 : (hasSeenIntro ? 1800 : 7600);
 
     function finishIntro() {
       if (finished) return;
