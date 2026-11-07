@@ -61,7 +61,7 @@ document.addEventListener("DOMContentLoaded", () => {
     detailContent: $("#productDetailContent"),
     commentForm: $("#commentForm"),
     commentInput: $("#commentInput"),
-    commentList: $("#commentList"),
+    commentList: $("#productCommentList"),
     commentStatus: $("#commentStatus"),
 
     messages: $("#marketMessagesSection"),
@@ -1662,7 +1662,7 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
     // Refresh
-    $("#refreshFeedButton")?.addEventListener("click", loadProducts);
+    $("#refreshProductsButton")?.addEventListener("click", loadProducts);
 
     // Clear filters
     $("#clearFiltersButton")?.addEventListener("click", () => {

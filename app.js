@@ -232,7 +232,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     "#academics": "academics.html",
     "#schedule": "timetable.html",
     "#profile": "profile.html",
-    "#community": "community.html"
+    "#community": "community.html",
+    "#marketplace": "marketplace.html",
+    "#opportunities": "opportunities.html"
   };
 
   // Update destinations BEFORE attaching click listeners.
