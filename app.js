@@ -62,19 +62,39 @@ document.addEventListener("DOMContentLoaded", async () => {
     }, 3000);
   }
 
-  // =========================================
-  // DATE
+    // =========================================
+  // LIVE DATE & CLOCK
   // =========================================
 
-  function displayDate() {
+  let clockElement = document.querySelector("#liveClock");
+
+  if (!clockElement && todayDate) {
+    clockElement = document.createElement("span");
+    clockElement.id = "liveClock";
+    clockElement.className = "live-clock";
+    clockElement.setAttribute("aria-live", "off");
+
+    todayDate.insertAdjacentElement("afterend", clockElement);
+  }
+
+  function displayDateTime() {
     const now = new Date();
 
     if (todayDate) {
       todayDate.textContent = new Intl.DateTimeFormat("en-NG", {
-        weekday: "short",
+        weekday: "long",
         day: "numeric",
-        month: "short",
+        month: "long",
         year: "numeric"
+      }).format(now);
+    }
+
+    if (clockElement) {
+      clockElement.textContent = new Intl.DateTimeFormat("en-NG", {
+        hour: "numeric",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: true
       }).format(now);
     }
 
@@ -83,7 +103,16 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   }
 
-  displayDate();
+  displayDateTime();
+
+  // Keep the clock running and refresh when the page becomes active.
+  const clockInterval = setInterval(displayDateTime, 1000);
+
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) displayDateTime();
+  });
+
+  window.addEventListener("focus", displayDateTime);
 
   // =========================================
   // AUTHENTICATION

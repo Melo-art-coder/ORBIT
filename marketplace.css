@@ -1320,6 +1320,10 @@ min-height: 55px;
   }
 }
 
+/* ==========================================
+   ORBIT MARKETPLACE — REFINED RESPONSIVE UI
+========================================== */
+
 /* DARK THEME */
 html[data-theme="dark"] {
   --cream: #17151a;
@@ -1336,9 +1340,11 @@ html[data-theme="dark"] {
   --shadow: 0 18px 55px rgba(0, 0, 0, .2);
   --small-shadow: 0 7px 25px rgba(0, 0, 0, .17);
 }
+
 html[data-theme="dark"] .market-hero-art .market-art-core {
   box-shadow: 0 22px 55px rgba(0, 0, 0, .3);
 }
+
 html[data-theme="dark"] .field input,
 html[data-theme="dark"] .field select,
 html[data-theme="dark"] .field textarea,
@@ -1347,286 +1353,415 @@ html[data-theme="dark"] .message-composer textarea {
   background: #29252e;
   color: var(--ink);
 }
+
 html[data-theme="dark"] .image-upload-area,
 html[data-theme="dark"] .marketplace-privacy-note {
   background: #29242f;
   border-color: var(--line);
-  html[data-theme="dark"] .conversation-list {
+}
+
+html[data-theme="dark"] .conversation-list {
   background: #252129;
 }
+
 html[data-theme="dark"] .product-image-placeholder {
   background: #302a37;
 }
+
 html[data-theme="dark"] .product-category {
   background: rgba(33, 30, 37, .94);
 }
+
 html[data-theme="dark"] .market-empty {
   background: rgba(33, 30, 37, .65);
 }
+
 html[data-theme="dark"] .primary-button {
   background: #c3acd9;
   border-color: #c3acd9;
   color: #211e25;
 }
+
 html[data-theme="dark"] .primary-button:hover:not(:disabled) {
   background: #d2c0e5;
   border-color: #d2c0e5;
 }
+
 html[data-theme="dark"] .message-composer button {
   background: #c3acd9;
   color: #211e25;
 }
+
 /* TABLET */
 @media (max-width: 1050px) {
   .marketplace-page {
     padding: 0 4%;
   }
+
   .product-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 17px;
+    gap: 16px;
   }
+
   .market-hero {
     min-height: 330px;
   }
 }
+
 /* MOBILE */
 @media (max-width: 720px) {
   .marketplace-page {
-    padding: 0 19px;
+    padding: 0 15px;
   }
+
   .market-header {
-    min-height: 68px;
+    min-height: 65px;
   }
+
   .market-header-actions {
-    gap: 13px;
+    gap: 11px;
   }
+
   .back-dashboard {
-    font-size: 11px;
+    font-size: 10px;
   }
+
   .brand {
-    font-size: 22px;
+    font-size: 21px;
   }
+
   .market-hero {
     min-height: unset;
     grid-template-columns: 1fr;
-    gap: 8px;
-    padding: 43px 0 25px;
+    gap: 5px;
+    padding: 35px 0 18px;
   }
+
   .market-hero h1 {
-    font-size: clamp(39px, 10vw, 51px);
+    font-size: clamp(37px, 9vw, 49px);
   }
+
   .market-hero-copy > p {
-    max-width: 440px;
     font-size: 12px;
+    line-height: 1.75;
   }
+
   .market-hero-art {
-    min-height: 220px;
+    min-height: 205px;
     margin-top: 5px;
   }
+
   .orbit-one {
-    width: 235px;
-    height: 125px;
+    width: 225px;
+    height: 120px;
   }
+
   .orbit-two {
-    width: 190px;
-    height: 235px;
+    width: 180px;
+    height: 220px;
   }
-  .market-art-core{
-    width: 90px;
-    height: 90px;
-    border-radius: 28px;
+
+  .market-art-core {
+    width: 88px;
+    height: 88px;
+    border-radius: 26px;
   }
+
   .market-art-core span {
-    font-size: 39px;
+    font-size: 37px;
   }
+
   .market-art-card-one {
-    top: 10px;
-    left: 8%;
+    top: 8px;
+    left: 6%;
   }
+
   .market-art-card-two {
-    right: 7%;
-    bottom: 10px;
+    right: 5%;
+    bottom: 8px;
   }
+
+  /* Search */
   .market-search-section {
     align-items: stretch;
+    gap: 8px;
   }
+
   .market-search-box {
-    height: 48px;
-    padding: 0 12px;
+    height: 47px;
+    padding: 0 11px;
+    border-radius: 12px;
   }
+
   .market-search-box input {
     font-size: 11px;
   }
+
   .filter-toggle-button {
-    min-height: 48px;
-    padding: 0 12px;
+    min-height: 47px;
+    padding: 0 11px;
+    border-radius: 12px;
     font-size: 10px;
   }
+
+  /* Scrollable categories */
   .category-filters {
     flex-wrap: nowrap;
     overflow-x: auto;
-    padding-bottom: 8px;
-    scrollbar-width: thin;
+    padding-bottom: 9px;
+    scrollbar-width: none;
   }
+
+  .category-filters::-webkit-scrollbar {
+    display: none;
+  }
+
   .category-chip {
-    flex: 0 0 aut0;
+    flex: 0 0 auto;
+    white-space: nowrap;
   }
+
   .market-filter-options {
     gap: 8px;
   }
+
   .market-filter-options select {
     max-width: 44%;
     min-width: 0;
   }
-  .market-section-heading h2,
-  .listing-heading h2 {
-    font-size: 27px;
-  }
+
+  /* Feed */
   .market-feed-section,
   .seller-dashboard-section {
-    padding: 25px 0 35px;
+    padding: 23px 0 32px;
   }
+
+  .market-section-heading {
+    margin-bottom: 17px;
+  }
+
+  .market-section-heading h2,
+  .listing-heading h2 {
+    font-size: 26px;
+  }
+
+  .market-feed-tabs {
+    gap: 20px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .market-feed-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .market-tab {
+    flex: 0 0 auto;
+  }
+
+  /* Compact shopping grid */
   .product-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 12px;
+    align-items: start;
+    gap: 11px;
   }
+
+  .product-card {
+    border-radius: 14px;
+  }
+
+  .product-image-wrap {
+    aspect-ratio: 4 / 4.5;
+  }
+
   .product-details {
-    padding: 11px;
+    padding: 10px;
   }
+
   .product-title {
     font-size: 11px;
+    line-height: 1.4;
   }
+
   .product-description {
     font-size: 10px;
+    line-height: 1.5;
   }
+
   .product-price {
+    margin: 7px 0;
     font-size: 15px;
   }
-  .product-card-actions{
+
+  .product-location,
+  .product-seller {
+    font-size: 9px;
+  }
+
+  .product-card-actions {
     gap: 5px;
+    margin-top: 10px;
+    padding-top: 9px;
   }
+
   .product-card-actions button {
-    font: 10px;
+    font-size: 9px;
   }
+
+  /* Seller dashboard */
   .seller-dashboard-section {
-    padding: 22px 17px;
+    padding: 20px 14px;
   }
+
   .seller-stat-grid {
     gap: 8px;
   }
+
   .seller-stat-card {
-    font-size: 13px 10px;
+    padding: 13px 10px;
   }
+
   .seller-stat-card span {
     font-size: 9px;
   }
+
   .seller-stat-card strong {
-    font-size: 21px;
+    font-size: 20px;
   }
+
+  /* Forms and panels */
   .listing-section,
   .product-detail-section,
   .market-messages-section,
   .market-shop-section {
-    padding: 21px 16px;
-    border-radius: 17px;
+    padding: 20px 14px;
+    border-radius: 16px;
   }
-  .listing-form-grid{
+
+  .listing-form-grid {
     grid-template-columns: 1fr;
-    gap: 17px;
+    gap: 16px;
   }
+
   .field.full-width {
     grid-column: auto;
   }
+
   .listing-form-actions {
     flex-direction: column-reverse;
   }
+
   .listing-form-actions button {
     width: 100%;
   }
+
   .product-detail-layout {
     grid-template-columns: 1fr;
-    gap: 19px;
+    gap: 18px;
   }
+
   .product-detail-image {
     max-height: 340px;
   }
+
   .product-detail-info h2 {
     font-size: 25px;
   }
+
+  /* Messaging */
   .messages-layout {
     grid-template-columns: 1fr;
   }
+
   .conversation-list {
     border-right: 0;
     border-bottom: 1px solid var(--line);
   }
-  .message-list{
+
+  .message-list {
     min-height: 220px;
   }
-  .shop-product-grid {
-    grid-template-columns: repeat(2, minmax (0, 1fr));
-    gap: 12px;
+
+  .message-composer {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px;
   }
+
+  .message-composer button {
+    padding: 0 13px;
+  }
+
+  /* Seller shop */
+  .shop-product-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 11px;
+  }
+
   .market-footer {
     min-height: unset;
     flex-wrap: wrap;
-    padding: 25px 0;
+    padding: 23px 0;
   }
+
   .market-footer p {
-     order: 3;
-     width: 100%;
+    order: 3;
+    width: 100%;
   }
 }
-/*SMALL PHONES*/
-@media (max-width:390px){
-  .marketplace-page{
-    padding: 0 14px;
+
+/* SMALL PHONES */
+@media (max-width: 390px) {
+  .marketplace-page {
+    padding: 0 12px;
   }
-  .market-header-actions{
-    gap: 8px;
+
+  .market-header-actions {
+    gap: 7px;
   }
+
   .back-dashboard {
+    font-size: 9px;
+  }
+
+  .market-hero h1 {
+    font-size: 36px;
+  }
+
+  .market-hero-actions {
+    gap: 7px;
+  }
+
+  .market-hero-actions button {
+    padding: 0 13px;
     font-size: 10px;
   }
-  .market-hero h1 {
-    font-size: 38px;
+
+  .market-section-heading h2 {
+    font-size: 23px;
   }
-  .market-hero-actions {
+
+  .product-grid {
     gap: 8px;
   }
-  .market-hero-actions button {
-    padding: 0 14px;
-    font-size: 10px;
-  }
-  .market-section-heading {
-    align-items: flex-start;
-  }
-  .market-section-heading h2 {
-    font-size: 24px;
-  }
-  .text-button {
-    padding: 8px 10px;
-    font-size: 10px;
-  }
-  .product-grid {
-    gap: 9px;
-  }
+
   .product-details {
-    padding: 9px;
+    padding: 8px;
   }
+
   .product-card-actions button {
-    font-size: 9px;
+    font-size: 8px;
   }
-  .market-filter-options label {
-    font-size: 9px;
-  }
+
+  .market-filter-options label,
   .market-filter-options select {
     font-size: 9px;
   }
+
   .market-feed-tabs {
-    gap: 17px;
+    gap: 15px;
   }
 }
+
 /* ACCESSIBILITY */
 button:focus-visible,
 a:focus-visible,
@@ -1636,6 +1771,7 @@ textarea:focus-visible {
   outline: 3px solid rgba(128, 105, 158, .45);
   outline-offset: 3px;
 }
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -1646,4 +1782,39 @@ textarea:focus-visible {
     transition-duration: .01ms !important;
   }
 }
+/* PRODUCT AVAILABILITY */
+
+.product-availability {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  padding: 6px 11px;
+  border-radius: 30px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  background: #e8f3e9;
+  color: #27643a;
+}
+
+.product-availability.reserved {
+  background: #fff1d9;
+  color: #986319;
+}
+
+.product-availability.sold {
+  background: #eee9e7;
+  color: #71635e;
+}
+
+.product-image-wrap {
+  position: relative;
+}
+
+.product-availability {
+  margin-top: 7px;
+}
+
+.product-detail-info > .product-availability {
+  margin: 8px 0;
 }

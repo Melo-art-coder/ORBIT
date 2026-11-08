@@ -48,6 +48,7 @@ document.addEventListener("DOMContentLoaded", () => {
     listingForm: $("#listingForm"),
     title: $("#productTitle"),
     category: $("#productCategory"),
+    availability: $("#productAvailability"),
     price: $("#productPrice"),
     description: $("#productDescription"),
     location: $("#productLocation"),
@@ -382,9 +383,16 @@ document.addEventListener("DOMContentLoaded", () => {
       );
     }
 
-    imageWrap.append(
-      make("span", "product-category", product.category)
-    );
+    const availability = product.availability_status || "available";
+
+imageWrap.append(
+  make("span", "product-category", product.category),
+  make(
+    "span",
+    `product-availability ${availability}`,
+    availability.charAt(0).toUpperCase() + availability.slice(1)
+  )
+);
 
     const details = make("div", "product-details");
 
@@ -625,6 +633,9 @@ document.addEventListener("DOMContentLoaded", () => {
     if (product) {
       el.title.value = product.title;
       el.category.value = product.category;
+      if (el.availability) {
+  el.availability.value = product.availability_status || "available";
+}
       el.price.value = product.price;
       el.description.value = product.description;
       el.location.value = product.location;
@@ -729,7 +740,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const title = el.title.value.trim();
     const category = el.category.value;
-    const price = Number(el.price.value);
+const availability = el.availability?.value || "available";
+const price = Number(el.price.value);
     const description = el.description.value.trim();
     const location = el.location.value.trim();
 
@@ -784,12 +796,13 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       const payload = {
-        title,
-        category,
-        price,
-        description,
-        location
-      };
+  title,
+  category,
+  availability_status: availability,
+  price,
+  description,
+  location
+};
 
       if (uploadedPath) payload.image_path = uploadedPath;
 
@@ -946,6 +959,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     info.append(
       make("span", "eyebrow", product.category || "Marketplace item"),
+      make(
+  "span",
+  `product-availability ${product.availability_status || "available"}`,
+  (product.availability_status || "available").charAt(0).toUpperCase() +
+    (product.availability_status || "available").slice(1)
+),
       make("h2", "", product.title),
       make("strong", "detail-price", formatMoney(product.price)),
       make("p", "", product.description || "No description provided."),
@@ -987,18 +1006,29 @@ document.addEventListener("DOMContentLoaded", () => {
       actions.append(edit, remove);
 
     } else {
-      const contact = make("button", "primary-button", "Message seller");
-      contact.type = "button";
-      contact.addEventListener("click", () => startConversation(product));
+  if (product.availability_status !== "sold") {
+    const contact = make(
+      "button",
+      "primary-button",
+      product.availability_status === "reserved"
+        ? "Ask about availability"
+        : "Message seller"
+    );
 
-      const report = make("button", "secondary-button", "Report listing");
-      report.type = "button";
-      report.addEventListener("click", () =>
-        reportItem("product", product.id)
-      );
+    contact.type = "button";
+    contact.addEventListener("click", () => startConversation(product));
 
-      actions.append(contact, report);
-    }
+    actions.append(contact);
+  }
+
+  const report = make("button", "secondary-button", "Report listing");
+  report.type = "button";
+  report.addEventListener("click", () =>
+    reportItem("product", product.id)
+  );
+
+  actions.append(report);
+}
 
     const shop = make("button", "secondary-button", "View shop");
     shop.type = "button";

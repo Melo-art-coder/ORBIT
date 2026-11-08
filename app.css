@@ -1804,3 +1804,57 @@ html[data-theme="dark"] .stat-primary .stat-description {
     bottom: 18px;
   }
 }
+/* =========================================
+   ORBIT LIVE CLOCK
+========================================= */
+
+.live-clock {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+
+  color: var(--purple-dark);
+  font-size: 12px;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.3px;
+}
+
+.live-clock::before {
+  content: "";
+  width: 7px;
+  height: 7px;
+  flex-shrink: 0;
+
+  background: var(--success);
+  border-radius: 50%;
+  box-shadow: 0 0 0 4px rgba(86, 129, 106, 0.10);
+}
+
+/* Mobile clock */
+@media (max-width: 680px) {
+  .topbar-actions {
+    gap: 10px;
+  }
+
+  .live-clock {
+    font-size: 11px;
+  }
+
+  .live-clock::before {
+    width: 6px;
+    height: 6px;
+  }
+}
+
+@media (max-width: 380px) {
+  .live-clock {
+    font-size: 10px;
+  }
+}
+
+/* Dark theme */
+html[data-theme="dark"] .live-clock {
+  color: var(--purple-dark);
+}

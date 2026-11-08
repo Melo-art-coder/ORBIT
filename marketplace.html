@@ -378,7 +378,15 @@
 
           <div class="field">
             <label for="productCategory">Category</label>
+<div class="field">
+  <label for="productAvailability">Availability</label>
 
+  <select id="productAvailability" required>
+    <option value="available">Available</option>
+    <option value="reserved">Reserved</option>
+    <option value="sold">Sold</option>
+  </select>
+</div>
             <select id="productCategory" required>
               <option value="">Choose category</option>
               <option value="Food">Food</option>
