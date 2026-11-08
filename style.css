@@ -1412,3 +1412,286 @@ a {
 @media (prefers-reduced-motion:reduce) {
   .orbit-intro *, .orbit-intro *::before, .orbit-intro *::after { animation-duration:.01ms !important; animation-iteration-count:1 !important; transition-duration:.01ms !important; }
 }
+/* ==========================================
+   ORBIT CINEMATIC INTRO
+========================================== */
+
+#orbit-intro {
+    position: fixed;
+    inset: 0;
+    z-index: 999999;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #03040a;
+    color: #fff;
+    isolation: isolate;
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 2.5s ease, visibility 2.5s ease;
+}
+
+#orbit-intro.orbit-exit {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.orbit-stars,
+.orbit-nebula {
+    position: absolute;
+    inset: -20%;
+    pointer-events: none;
+}
+
+.orbit-stars {
+    background-image:
+        radial-gradient(1px 1px at 10% 20%, #fff 99%, transparent),
+        radial-gradient(2px 2px at 30% 70%, #fff 99%, transparent),
+        radial-gradient(1px 1px at 60% 30%, #fff 99%, transparent),
+        radial-gradient(2px 2px at 80% 80%, #fff 99%, transparent),
+        radial-gradient(1px 1px at 90% 15%, #fff 99%, transparent),
+        radial-gradient(1px 1px at 45% 45%, #fff 99%, transparent),
+        radial-gradient(2px 2px at 70% 60%, #fff 99%, transparent);
+    background-size: 250px 250px;
+    opacity: .7;
+    animation: starDrift 60s linear infinite;
+}
+
+.orbit-nebula {
+    background:
+        radial-gradient(ellipse at 25% 35%, rgba(78, 68, 125, .19), transparent 45%),
+        radial-gradient(ellipse at 75% 65%, rgba(30, 91, 120, .14), transparent 45%);
+    filter: blur(30px);
+}
+
+.orbit-intro-content {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+    animation: introCamera 60s ease-in-out forwards;
+}
+
+.orbit-solar-system {
+    position: relative;
+    width: min(82vw, 620px);
+    aspect-ratio: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transform: scale(.9);
+    animation: solarReveal 8s ease forwards;
+}
+
+.orbit-sun {
+    position: absolute;
+    width: 9%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, #fff7ce, #f9bd66 35%, #e77b36 75%, #9b3f24);
+    box-shadow:
+        0 0 25px 8px rgba(255, 176, 85, .5),
+        0 0 80px 30px rgba(255, 131, 49, .2);
+    z-index: 5;
+}
+
+.sun-glow {
+    position: absolute;
+    inset: -100%;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(255, 174, 81, .17), transparent 68%);
+}
+
+.orbit-path {
+    position: absolute;
+    border: 1px solid rgba(255, 255, 255, .12);
+    border-radius: 50%;
+    aspect-ratio: 1;
+    animation: orbitSpin linear infinite;
+}
+
+.orbit-one { width: 17%; animation-duration: 7s; }
+.orbit-two { width: 25%; animation-duration: 11s; }
+.orbit-three { width: 34%; animation-duration: 15s; }
+.orbit-four { width: 44%; animation-duration: 19s; }
+.orbit-five { width: 56%; animation-duration: 27s; }
+.orbit-six { width: 68%; animation-duration: 34s; }
+.orbit-seven { width: 79%; animation-duration: 42s; }
+.orbit-eight { width: 91%; animation-duration: 50s; }
+
+.orbit-planet {
+    position: absolute;
+    top: 50%;
+    left: 0;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.mercury { background: #aaa49b; width: 5px; height: 5px; }
+.venus { background: #d5a66c; width: 9px; height: 9px; }
+.earth { background: radial-gradient(circle at 30% 30%, #a8e7ff, #2674c8 55%, #17406d); width: 13px; height: 13px; }
+.mars { background: #d47b54; width: 10px; height: 10px; }
+.jupiter { background: linear-gradient(90deg, #b98260, #e6c29c, #986b54); width: 25px; height: 25px; }
+.saturn { background: #d7bd8d; width: 20px; height: 20px; }
+.uranus { background: #8ad4d5; width: 15px; height: 15px; }
+.neptune { background: #4778df; width: 14px; height: 14px; }
+
+.saturn-ring {
+    position: absolute;
+    width: 35px;
+    height: 12px;
+    border: 2px solid rgba(222, 197, 150, .8);
+    border-radius: 50%;
+    top: 4px;
+    left: -8px;
+    transform: rotate(-20deg);
+}
+
+.earth-moon {
+    position: absolute;
+    width: 4px;
+    height: 4px;
+    border-radius: 50%;
+    background: #ddd;
+    right: -6px;
+    top: -4px;
+}
+
+.orbit-brand {
+    position: absolute;
+    top: 12%;
+    text-align: center;
+    opacity: 0;
+    transform: translateY(20px);
+    animation: brandReveal 3s ease forwards;
+    animation-delay: 28s;
+}
+
+.orbit-brand h1 {
+    margin: 0;
+    font-family: Georgia, serif;
+    font-size: clamp(48px, 10vw, 100px);
+    font-weight: 400;
+    letter-spacing: .28em;
+    padding-left: .28em;
+    color: #f8f3e8;
+    text-shadow: 0 0 35px rgba(255, 255, 255, .2);
+}
+
+.orbit-brand p {
+    margin-top: 14px;
+    font-size: clamp(11px, 2vw, 15px);
+    letter-spacing: .32em;
+    text-transform: uppercase;
+    color: #d4c8b2;
+    opacity: 0;
+    animation: taglineReveal 2.5s ease forwards;
+    animation-delay: 39s;
+}
+
+#orbit-skip {
+    position: absolute;
+    z-index: 10;
+    bottom: 35px;
+    right: 35px;
+    padding: 12px 19px;
+    border: 1px solid rgba(255, 255, 255, .25);
+    border-radius: 30px;
+    color: #fff;
+    background: rgba(255, 255, 255, .06);
+    font-size: 12px;
+    letter-spacing: .08em;
+    cursor: pointer;
+    backdrop-filter: blur(10px);
+    transition: background .3s ease;
+}
+
+#orbit-skip:hover {
+    background: rgba(255, 255, 255, .16);
+}
+
+#orbit-skip span {
+    margin-left: 8px;
+}
+
+.orbit-intro-progress {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background: rgba(255, 255, 255, .1);
+}
+
+.orbit-intro-progress span {
+    display: block;
+    width: 0;
+    height: 100%;
+    background: #d5bd8b;
+    animation: introProgress 60s linear forwards;
+}
+
+@keyframes orbitSpin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+@keyframes starDrift {
+    from { transform: translateY(0); }
+    to { transform: translateY(-250px); }
+}
+
+@keyframes solarReveal {
+    from { opacity: 0; transform: scale(.55); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes brandReveal {
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes taglineReveal {
+    to { opacity: 1; }
+}
+
+@keyframes introCamera {
+    0%, 80% { transform: scale(1); }
+    100% { transform: scale(1.4); }
+}
+
+@keyframes introProgress {
+    to { width: 100%; }
+}
+
+@media (max-width: 600px) {
+    .orbit-solar-system {
+        width: 94vw;
+    }
+
+    .orbit-brand {
+        top: 16%;
+    }
+
+    #orbit-skip {
+        bottom: 25px;
+        right: 20px;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    #orbit-intro *,
+    #orbit-intro *::before,
+    #orbit-intro *::after {
+        animation-duration: .01ms !important;
+        animation-delay: 0ms !important;
+        transition-duration: .01ms !important;
+    }
+}

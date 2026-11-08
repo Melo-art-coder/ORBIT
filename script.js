@@ -205,3 +205,42 @@ document.addEventListener("DOMContentLoaded", () => {
   console.log("ORBIT landing page initialised.");
 
 });
+/* ==========================================
+   ORBIT CINEMATIC INTRO CONTROLLER
+========================================== */
+
+(function () {
+    const intro = document.getElementById("orbit-intro");
+
+    if (!intro || intro.dataset.initialized === "true") return;
+
+    intro.dataset.initialized = "true";
+
+    const skipButton = document.getElementById("orbit-skip");
+    const reducedMotion = window.matchMedia(
+        "(prefers-reduced-motion: reduce)"
+    ).matches;
+
+    let introFinished = false;
+
+    function closeOrbitIntro() {
+        if (introFinished) return;
+
+        introFinished = true;
+        intro.classList.add("orbit-exit");
+
+        window.setTimeout(() => {
+            intro.remove();
+        }, 2600);
+    }
+
+    skipButton?.addEventListener("click", closeOrbitIntro);
+
+    // Reduced-motion users get a much shorter introduction.
+    if (reducedMotion) {
+        window.setTimeout(closeOrbitIntro, 1500);
+    } else {
+        // Full cinematic experience on every launch.
+        window.setTimeout(closeOrbitIntro, 60000);
+    }
+})();
