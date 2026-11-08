@@ -231,7 +231,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         window.setTimeout(() => {
             intro.remove();
-        }, 2600);
+        }, 1200);
     }
 
     skipButton?.addEventListener("click", closeOrbitIntro);
@@ -241,6 +241,6 @@ document.addEventListener("DOMContentLoaded", () => {
         window.setTimeout(closeOrbitIntro, 1500);
     } else {
         // Full cinematic experience on every launch.
-        window.setTimeout(closeOrbitIntro, 60000);
+        window.setTimeout(closeOrbitIntro, 16000);
     }
 })();

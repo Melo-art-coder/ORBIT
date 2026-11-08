@@ -1572,7 +1572,7 @@ a {
     opacity: 0;
     transform: translateY(20px);
     animation: brandReveal 3s ease forwards;
-    animation-delay: 28s;
+    animation-delay: 6s;
 }
 
 .orbit-brand h1 {
@@ -1594,7 +1594,7 @@ a {
     color: #d4c8b2;
     opacity: 0;
     animation: taglineReveal 2.5s ease forwards;
-    animation-delay: 39s;
+    animation-delay: 9s;
 }
 
 #orbit-skip {
@@ -1636,7 +1636,7 @@ a {
     width: 0;
     height: 100%;
     background: #d5bd8b;
-    animation: introProgress 60s linear forwards;
+    animation: introProgress 16s linear forwards;
 }
 
 @keyframes orbitSpin {
@@ -1663,8 +1663,8 @@ a {
 }
 
 @keyframes introCamera {
-    0%, 80% { transform: scale(1); }
-    100% { transform: scale(1.4); }
+    0%, 75% { transform: scale(1); }
+    100% { transform: scale(1.35); }
 }
 
 @keyframes introProgress {
@@ -1674,6 +1674,7 @@ a {
 @media (max-width: 600px) {
     .orbit-solar-system {
         width: 94vw;
+        animation: solarReveal 2s ease forwards;
     }
 
     .orbit-brand {
