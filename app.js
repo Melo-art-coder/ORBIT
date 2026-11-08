@@ -19,7 +19,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const courseList = $("#dashboardCourseList");
   const todayDate = $("#todayDate");
   const currentYear = $("#currentYear");
-
+const dashboardTimetableList = $("#dashboardTimetableList");
   // =========================================
   // HELPERS
   // =========================================
@@ -448,7 +448,119 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     renderCourses(studentCourses);
   }
+/* ==================================
+   LOAD DASHBOARD TIMETABLE
+================================== */
 
+async function loadDashboardTimetable() {
+  const container = dashboardTimetableList;
+
+  if (!container) return;
+
+  container.innerHTML = `
+    <p class="schedule-loading">Loading your timetable...</p>
+  `;
+
+  try {
+    const { data, error } = await window.orbitSupabase
+      .from("timetable_events")
+      .select("id, title, course_code, event_type, day_of_week, start_time, end_time, location")
+      .eq("user_id", currentUser.id)
+      .order("start_time", { ascending: true });
+
+    if (error) throw error;
+
+    if (!data || data.length === 0) {
+      container.innerHTML = `
+        <div class="schedule-empty">
+          <strong>No activities scheduled yet.</strong>
+          <p>Your saved lectures and activities will appear here.</p>
+          <a href="timetable.html">Create your timetable</a>
+        </div>
+      `;
+      return;
+    }
+
+    const dayNames = {
+      0: "Sunday",
+      1: "Monday",
+      2: "Tuesday",
+      3: "Wednesday",
+      4: "Thursday",
+      5: "Friday",
+      6: "Saturday"
+    };
+
+    const today = new Date().getDay();
+
+    const sortedEvents = [...data].sort((a, b) => {
+      const dayA = (Number(a.day_of_week) - today + 7) % 7;
+      const dayB = (Number(b.day_of_week) - today + 7) % 7;
+
+      return dayA - dayB ||
+        a.start_time.localeCompare(b.start_time);
+    });
+
+    container.innerHTML = sortedEvents.map(event => {
+      const start = formatDashboardTime(event.start_time);
+      const end = formatDashboardTime(event.end_time);
+
+      return `
+        <article class="dashboard-timetable-item">
+          <div class="dashboard-timetable-time">
+            <strong>${start}</strong>
+            <span>${end}</span>
+          </div>
+
+          <div class="dashboard-timetable-details">
+            <strong>${escapeDashboardHTML(event.title)}</strong>
+            <span>
+              ${dayNames[event.day_of_week] || "Unknown day"}
+              ${event.course_code ? ` · ${escapeDashboardHTML(event.course_code)}` : ""}
+            </span>
+            <small>
+              ${escapeDashboardHTML(event.location || "Location not added")}
+              · ${escapeDashboardHTML(event.event_type || "Other")}
+            </small>
+          </div>
+        </article>
+      `;
+    }).join("");
+
+  } catch (error) {
+    console.error("Dashboard timetable error:", error);
+
+    container.innerHTML = `
+      <p class="schedule-error">
+        Couldn't load your timetable. Please refresh.
+      </p>
+    `;
+  }
+}
+
+function formatDashboardTime(time) {
+  if (!time) return "";
+
+  const [hours, minutes] = time.split(":").map(Number);
+  const date = new Date();
+
+  date.setHours(hours, minutes, 0, 0);
+
+  return date.toLocaleTimeString("en-NG", {
+    hour: "numeric",
+    minute: "2-digit"
+  });
+}
+
+function escapeDashboardHTML(value = "") {
+  return String(value).replace(/[&<>"']/g, character => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#039;"
+  })[character]);
+}
   // =========================================
   // RENDER COURSES
   // =========================================
@@ -550,12 +662,12 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   try {
     const ready = await loadStudent();
+if (!ready) return;
 
-    if (!ready) return;
+displayStudent(currentProfile);
 
-    displayStudent(currentProfile);
-
-    await loadCourses();
+await loadCourses();
+await loadDashboardTimetable();
 
     console.log("ORBIT dashboard successfully loaded.");
 
